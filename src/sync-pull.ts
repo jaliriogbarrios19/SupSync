@@ -47,16 +47,15 @@ export async function pullChanges(deps: SyncPullDeps): Promise<void> {
                     continue;
                 }
 
-                const remoteTime = new Date(note.updated_at).getTime();
-                const localTime = existing.stat.mtime;
+                const action = resolveConflict(
+                    existing.stat.mtime,
+                    note.updated_at,
+                    settings.conflictMode,
+                );
 
-                if (settings.conflictMode === "remote-wins") {
+                if (action === "accept-remote") {
                     await vault.modify(existing, note.content);
-                } else if (settings.conflictMode === "local-wins") {
-                    // keep local, nothing to do
-                } else if (remoteTime > localTime) {
-                    await vault.modify(existing, note.content);
-                } else if (settings.conflictMode === "ask") {
+                } else if (action === "ask") {
                     const modal = new ConflictModal(
                         app, note.path, localContent, note.content,
                     );
@@ -127,4 +126,18 @@ async function checkStorageWarning(
 
 function maxTimestamp(a: string, b: string): string {
     return a > b ? a : b;
+}
+
+export type ConflictAction = "accept-remote" | "keep-local" | "ask";
+
+export function resolveConflict(
+    localMtime: number,
+    remoteIsoTimestamp: string,
+    mode: string,
+): ConflictAction {
+    if (mode === "remote-wins") return "accept-remote";
+    if (mode === "local-wins") return "keep-local";
+    if (mode === "ask") return "ask";
+    const remoteTime = new Date(remoteIsoTimestamp).getTime();
+    return remoteTime > localMtime ? "accept-remote" : "keep-local";
 }

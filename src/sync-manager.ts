@@ -11,6 +11,7 @@ import {
     initBinarySync, isBinaryFile, pushBinaryFile,
 } from "./binary-sync";
 import { pullChanges as pullImpl, fullSync as fullImpl } from "./sync-pull";
+import { setPendingCount, addSyncError } from "./status-bar";
 
 let app: App;
 let settings: SupSyncSettings;
@@ -109,6 +110,7 @@ function enqueueChange(path: string, type: PendingChange["type"]): void {
     if (duplicatePending(path, type)) return;
 
     pendingQueue.push({ path, type, isRemote: false, timestamp: Date.now() });
+    setPendingCount(pendingQueue.length);
     scheduleFlush();
 }
 
@@ -163,10 +165,13 @@ export async function flushQueue(): Promise<void> {
         try {
             await pushChange(change);
         } catch (err) {
+            const msg = err instanceof Error ? err.message : "Unknown error";
             console.warn(`[SupSync] Push failed for ${change.path}:`, err);
+            addSyncError(change.path, msg);
         }
     }
 
+    setPendingCount(pendingQueue.length);
     if (onStatusChange) onStatusChange("idle");
 }
 

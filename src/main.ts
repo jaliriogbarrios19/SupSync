@@ -20,8 +20,10 @@ import {
     fullSync, cleanup as cleanupSync,
 } from "./sync-manager";
 import { initLocale, t } from "./i18n";
+import { registerStatusBar, setSyncState, clearSyncErrors } from "./status-bar";
 
 const SYNC_CONFIG_FILENAME = ".supsync-config.json";
+const SETTINGS_SHARED_FILENAME = ".supsync-settings.json";
 
 let lockManager: LockManager;
 let realtimeManager: RealtimeManager;
@@ -56,8 +58,16 @@ export default class SupSyncPlugin extends Plugin {
 
         this.registerCommands();
         this.addRibbonIcon("refresh-cw", "Sync now", () => {
+            clearSyncErrors();
             void this.syncNow();
         });
+
+        const statusItem = this.addStatusBarItem();
+        registerStatusBar(statusItem, () => {
+            clearSyncErrors();
+            void this.syncNow();
+        });
+
         this.addSettingTab(new SupSyncSettingTab(this.app, this));
 
         await this.restoreSession();
@@ -77,11 +87,34 @@ export default class SupSyncPlugin extends Plugin {
     async loadSettings(): Promise<void> {
         const data = await this.loadData() as Partial<SupSyncSettings> | null;
         this.settings = { ...DEFAULT_SETTINGS, ...(data || {}) };
+
+        const sharedFile = this.app.vault.getAbstractFileByPath(SETTINGS_SHARED_FILENAME);
+        if (sharedFile instanceof TFile) {
+            try {
+                const content = await this.app.vault.read(sharedFile);
+                const shared = JSON.parse(content) as Partial<SupSyncSettings>;
+                this.settings = { ...this.settings, ...shared };
+            } catch {
+                // ignore parse errors
+            }
+        }
     }
 
     async saveSettings(): Promise<void> {
         await this.saveData(this.settings);
         setSupabaseSettings(this.settings);
+
+        try {
+            const existing = this.app.vault.getAbstractFileByPath(SETTINGS_SHARED_FILENAME);
+            const json = JSON.stringify(this.settings, null, 2);
+            if (existing instanceof TFile) {
+                await this.app.vault.modify(existing, json);
+            } else {
+                await this.app.vault.create(SETTINGS_SHARED_FILENAME, json);
+            }
+        } catch {
+            // vault may not be ready
+        }
     }
 
     // --- Session restoration ---
@@ -101,7 +134,7 @@ export default class SupSyncPlugin extends Plugin {
                 initSyncManager(
                     this.app, this.settings,
                     this.currentUserId, this.vaultId,
-                    () => void 0,
+                    (s) => { setSyncState(s as "idle" | "pushing" | "pulling" | "error"); },
                 );
                 startPolling();
                 realtimeManager.connect(this.vaultId);
@@ -155,6 +188,7 @@ export default class SupSyncPlugin extends Plugin {
             new Notice(t("plugin.signInFirst"));
             return;
         }
+        clearSyncErrors();
         await fullSync();
     }
 
@@ -183,6 +217,7 @@ export default class SupSyncPlugin extends Plugin {
                     stopPolling();
                     cleanupSync();
                     await lockManager.releaseAll();
+                    clearSyncErrors();
                     this.currentUserId = "";
                     setCurrentUserId("");
                     new Notice(t("plugin.signedOut"));
@@ -239,7 +274,7 @@ export default class SupSyncPlugin extends Plugin {
         if (this.vaultId) {
             initSyncManager(
                 this.app, this.settings,
-                this.currentUserId, this.vaultId, () => void 0,
+                this.currentUserId, this.vaultId, (s) => { setSyncState(s as "idle" | "pushing" | "pulling" | "error"); },
             );
             startPolling();
             realtimeManager.connect(this.vaultId);
@@ -265,7 +300,7 @@ export default class SupSyncPlugin extends Plugin {
             await this.saveVaultConfig(vault.id, vault.name);
             initSyncManager(
                 this.app, this.settings,
-                this.currentUserId, this.vaultId, () => void 0,
+                this.currentUserId, this.vaultId, (s) => { setSyncState(s as "idle" | "pushing" | "pulling" | "error"); },
             );
             startPolling();
             realtimeManager.connect(this.vaultId);
@@ -289,7 +324,7 @@ export default class SupSyncPlugin extends Plugin {
                 await this.saveVaultConfig(vaultId, vaultName);
                 initSyncManager(
                     this.app, this.settings,
-                    this.currentUserId, this.vaultId, () => void 0,
+                    this.currentUserId, this.vaultId, (s) => { setSyncState(s as "idle" | "pushing" | "pulling" | "error"); },
                 );
                 startPolling();
                 realtimeManager.connect(this.vaultId);

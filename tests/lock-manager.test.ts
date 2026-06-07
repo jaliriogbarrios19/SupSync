@@ -7,6 +7,7 @@ const mockRefreshLock = vi.fn();
 const mockReleaseLock = vi.fn();
 const mockGetActiveLock = vi.fn();
 const mockGetAccessToken = vi.fn();
+const mockGetCurrentUserId = vi.fn(() => "user-1");
 
 vi.mock("../src/supabase-api", () => ({
     acquireLock: (...args: unknown[]) => mockAcquireLock(...args),
@@ -17,6 +18,7 @@ vi.mock("../src/supabase-api", () => ({
 
 vi.mock("../src/supabase-client", () => ({
     getAccessToken: () => mockGetAccessToken(),
+    getCurrentUserId: () => mockGetCurrentUserId(),
 }));
 
 import { LockManager } from "../src/lock-manager";

@@ -17,6 +17,7 @@
   "plugin.lockAcquired": "SupSync: Lock acquired on {path}",
   "plugin.lockReleased": "SupSync: {path} is now free to edit",
   "plugin.lostLock": "Lost lock on {path}",
+  "status.errors": "Sync errors ({count})",
 
   "cmd.syncNow": "Sync now",
   "cmd.signIn": "Sign in",

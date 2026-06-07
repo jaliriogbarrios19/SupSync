@@ -17,6 +17,7 @@
   "plugin.lockAcquired": "SupSync: Lock adquirido en {path}",
   "plugin.lockReleased": "SupSync: {path} ahora está libre para editar",
   "plugin.lostLock": "Se perdió el lock en {path}",
+"status.errors": "Errores de sync ({count})",
 
   "cmd.syncNow": "Sincronizar ahora",
   "cmd.signIn": "Iniciar sesión",
