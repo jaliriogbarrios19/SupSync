@@ -30,9 +30,10 @@ Install from Obsidian Community Plugins, or copy `main.js`, `manifest.json`, and
 ### 2. Set up Supabase
 
 1. Create a [Supabase](https://supabase.com) project (free tier works)
-2. Run `sql/setup.sql` in the SQL Editor
+2. Run the SQL setup: open the **SupSync: Open setup wizard** — the SQL is embedded in Step 2 with a **Copy SQL** button. Paste it into your Supabase project's SQL Editor and run.
 3. Create a Storage bucket named `vault-files` (public)
-4. Copy your Project URL and anon key
+4. Add bucket policies: SELECT, INSERT, DELETE for authenticated users
+5. Copy your Project URL and anon key
 
 ### 3. Configure the plugin
 

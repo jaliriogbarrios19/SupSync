@@ -1,5 +1,6 @@
 import { App, Modal, Setting } from "obsidian";
 import { t } from "./i18n";
+import { SETUP_SQL } from "./setup-sql";
 
 interface OnboardingStep {
     title: string;
@@ -51,7 +52,30 @@ export class OnboardModal extends Modal {
                     this.stepContainer.createEl("p", { text: t("onboard.step3.p1") });
                     this.stepContainer.createEl("p", { text: t("onboard.step3.p2") });
                     this.stepContainer.createEl("p", { text: t("onboard.step3.p3") });
-                    this.stepContainer.createEl("p", { text: t("onboard.step3.p4") });
+
+                    const sqlBlock = this.stepContainer.createEl("pre", {
+                        cls: "supsync-sql-block",
+                    });
+                    sqlBlock.createEl("code", { text: SETUP_SQL });
+
+                    const copyBtn = this.stepContainer.createEl("button", {
+                        text: t("onboard.step3.copySql"),
+                        cls: "supsync-copy-btn",
+                    });
+                    copyBtn.addEventListener("click", () => {
+                        void (async () => {
+                            try {
+                                await navigator.clipboard.writeText(SETUP_SQL);
+                                copyBtn.setText(t("onboard.step3.sqlCopied"));
+                                window.setTimeout(() => {
+                                    copyBtn.setText(t("onboard.step3.copySql"));
+                                }, 2000);
+                            } catch {
+                                // clipboard may not be available
+                            }
+                        })();
+                    });
+
                     this.stepContainer.createEl("p", { text: t("onboard.step3.p5") });
                     this.stepContainer.createEl("p", {
                         text: t("onboard.step3.p6"),

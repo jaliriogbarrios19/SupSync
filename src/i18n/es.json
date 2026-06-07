@@ -120,8 +120,9 @@
   "onboard.step3.title": "Paso 2: Ejecutar el setup SQL",
   "onboard.step3.p1": "En tu dashboard de Supabase (https://supabase.com/dashboard), seleccioná tu proyecto.",
   "onboard.step3.p2": "Abrí el SQL Editor (barra lateral izquierda → SQL Editor).",
-  "onboard.step3.p3": "Abrí el archivo sql/setup.sql del directorio del plugin SupSync en un editor de texto.",
-  "onboard.step3.p4": "Copiá TODO el contenido y pegalo en el SQL Editor.",
+  "onboard.step3.p3": "El script SQL está debajo. Hacé clic en 'Copiar SQL' y pegalo en el SQL Editor.",
+  "onboard.step3.copySql": "Copiar SQL",
+  "onboard.step3.sqlCopied": "¡SQL copiado!",
   "onboard.step3.p5": "Hacé clic en \"Run\" (o Ctrl+Enter). Deberías ver \"Success. No rows returned.\"",
   "onboard.step3.p6": "Esto crea todas las tablas, índices, políticas RLS y triggers necesarios para el sync.",
 
