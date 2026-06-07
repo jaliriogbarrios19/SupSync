@@ -10,6 +10,8 @@
   "plugin.signInPrompt": "SupSync: Sesión iniciada como {email}. Usá 'Crear vault compartido' o 'Unirse a vault'.",
   "plugin.syncComplete": "SupSync: Sincronización completa.",
   "plugin.syncFailed": "SupSync: Error de sincronización. Revisá la consola.",
+  "sync.starting": "SupSync: Iniciando sync...",
+  "sync.progress": "SupSync: Sincronizando {current}/{total} archivos",
   "plugin.pleaseSignIn": "SupSync: Por favor iniciá sesión primero.",
   "plugin.verifyLogin": "SupSync: No se pudo verificar el login.",
   "plugin.storageWarning": "SupSync: Almacenamiento {used}/{limit} MB ({pct}%). Queda menos del 20%.",

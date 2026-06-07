@@ -189,7 +189,16 @@ export default class SupSyncPlugin extends Plugin {
             return;
         }
         clearSyncErrors();
-        await fullSync();
+
+        const progress = new Notice(t("sync.starting"), 0);
+        await fullSync((current, total) => {
+            progress.setMessage(t("sync.progress", {
+                current: String(current),
+                total: String(total),
+            }));
+        });
+        progress.hide();
+        new Notice(t("plugin.syncComplete"));
     }
 
     // --- Commands ---

@@ -68,14 +68,14 @@ export function stopPolling(): void {
 export async function pullChanges(): Promise<void> {
     await pullImpl({
         app, settings, vaultId, lastSyncAt, isRemoteChange: isRemote,
-        onStatusChange, flushQueue,
+        onStatusChange, flushQueue, onProgress: null,
     });
 }
 
-export async function fullSync(): Promise<void> {
+export async function fullSync(onProgress?: ((c: number, t: number) => void)): Promise<void> {
     await fullImpl({
         app, settings, vaultId, lastSyncAt, isRemoteChange: isRemote,
-        onStatusChange, flushQueue,
+        onStatusChange, flushQueue, onProgress: onProgress || null,
     });
 }
 

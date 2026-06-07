@@ -16,19 +16,24 @@ interface SyncPullDeps {
     lastSyncAt: { value: string };
     isRemoteChange: { value: boolean };
     onStatusChange: ((status: string) => void) | null;
+    onProgress: ((current: number, total: number) => void) | null;
     flushQueue: () => Promise<void>;
 }
 
 export async function pullChanges(deps: SyncPullDeps): Promise<void> {
-    const { app, settings, vaultId, lastSyncAt, isRemoteChange, onStatusChange } = deps;
+    const { app, settings, vaultId, lastSyncAt, isRemoteChange, onStatusChange, onProgress } = deps;
     if (!vaultId || !getAccessToken()) return;
     if (onStatusChange) onStatusChange("pulling");
 
     try {
         const notes = await fetchNotes(vaultId, lastSyncAt.value || undefined);
         const vault = app.vault;
+        const total = notes.length;
 
-        for (const note of notes) {
+        for (let i = 0; i < total; i++) {
+            const note = notes[i];
+            if (onProgress) onProgress(i + 1, total);
+
             isRemoteChange.value = true;
             const existing = vault.getAbstractFileByPath(note.path);
 
