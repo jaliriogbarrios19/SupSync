@@ -33,7 +33,7 @@ export async function pullChanges(deps: SyncPullDeps): Promise<void> {
             const existing = vault.getAbstractFileByPath(note.path);
 
             if (note.deleted) {
-                if (existing instanceof TFile) await vault.trash(existing, true);
+                if (existing instanceof TFile) await app.fileManager.trashFile(existing);
                 lastSyncAt.value = maxTimestamp(lastSyncAt.value, note.updated_at);
                 isRemoteChange.value = false;
                 continue;

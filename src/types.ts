@@ -12,7 +12,7 @@ export const DEFAULT_SETTINGS: SupSyncSettings = {
     supabaseAnonKey: "",
     syncInterval: 0,
     conflictMode: "remote-wins",
-    excludedPaths: [".git/", ".obsidian/", ".trash/", ".DS_Store", "Thumbs.db"],
+    excludedPaths: [".git/", ".trash/", ".DS_Store", "Thumbs.db"],
     storageLimitMB: 1024,
 };
 

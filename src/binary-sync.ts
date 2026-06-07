@@ -1,5 +1,4 @@
 import { App, TFile } from "obsidian";
-import type { VaultFile } from "./types";
 import { SYNCABLE_BINARY_EXTENSIONS } from "./types";
 import {
     uploadToStorage, downloadFromStorage, deleteFromStorage,
@@ -84,7 +83,7 @@ export async function pullBinaryFiles(): Promise<void> {
                 const localTime = localFile.stat.mtime;
                 if (remoteTime > localTime) {
                     const data = await downloadFromStorage("vault-files", rf.storage_path);
-                    await vault.trash(localFile, true);
+                    await app.fileManager.trashFile(localFile);
                     await vault.createBinary(rf.path, data);
                 }
             }

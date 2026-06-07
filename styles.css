@@ -58,8 +58,8 @@
 
 .supsync-toggle-btn,
 .supsync-cancel-btn {
-    background: var(--background-secondary) !important;
-    color: var(--text-normal) !important;
+    background-color: var(--background-secondary);
+    color: var(--text-normal);
 }
 
 /* Onboarding Modal */

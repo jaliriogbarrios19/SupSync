@@ -218,6 +218,8 @@ export function isSyncableFile(path: string): boolean {
 }
 
 function isExcluded(path: string): boolean {
+    const configDir = app.vault.configDir;
+    if (path.startsWith(configDir + "/") || path === configDir) return true;
     return settings.excludedPaths.some(
         (p) => path.startsWith(p) || path.includes("/" + p),
     );

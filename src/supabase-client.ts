@@ -246,7 +246,7 @@ export async function downloadFromStorage(
     if (res.status < 200 || res.status >= 300) {
         throw new Error(`Storage download failed: ${res.status}`);
     }
-    return res.arrayBuffer as ArrayBuffer;
+    return res.arrayBuffer;
 }
 
 export async function deleteFromStorage(

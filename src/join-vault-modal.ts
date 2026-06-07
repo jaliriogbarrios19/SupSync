@@ -33,7 +33,7 @@ export class JoinVaultModal extends Modal {
         this.vaultIdEl = form.createEl("input", {
             type: "text",
             placeholder: t("join.placeholder"),
-        }) as HTMLInputElement;
+        });
 
         const btnRow = form.createDiv({ cls: "supsync-login-buttons" });
 

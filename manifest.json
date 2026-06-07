@@ -1,10 +1,10 @@
 {
   "id": "supsync",
   "name": "SupSync",
-  "version": "0.2.0",
-  "minAppVersion": "1.4.0",
-  "description": "Sync Obsidian vaults across multiple users via Supabase with real-time collaboration and locking.",
-  "author": "Your Name",
-  "authorUrl": "",
+  "version": "0.3.0",
+  "minAppVersion": "1.6.6",
+  "description": "Sync vaults across multiple users via Supabase with real-time collaboration and locking.",
+  "author": "jaliriogbarrios19",
+  "authorUrl": "https://github.com/jaliriogbarrios19/SupSync",
   "isDesktopOnly": false
 }

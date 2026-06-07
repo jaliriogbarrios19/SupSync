@@ -48,7 +48,7 @@
   "settings.heading.excluded": "Rutas excluidas",
   "settings.excludedPaths": "Rutas a omitir",
   "settings.excludedPaths.desc": "Lista separada por comas de prefijos de ruta a excluir del sync.",
-  "settings.excludedPaths.placeholder": ".git/, .obsidian/, .trash/, .DS_Store, Thumbs.db",
+  "settings.excludedPaths.placeholder": ".git/, .trash/, .DS_Store, Thumbs.db",
   "settings.heading.vault": "Vault",
   "settings.setupWizard": "Asistente de setup",
   "settings.setupWizard.desc": "Guía paso a paso para conectar este vault a Supabase.",

@@ -29,10 +29,10 @@ export class LoginModal extends Modal {
         const form = contentEl.createDiv({ cls: "supsync-login-form" });
 
         form.createEl("label", { text: t("login.email") });
-        this.emailEl = form.createEl("input", { type: "email", placeholder: t("login.email.placeholder") }) as HTMLInputElement;
+        this.emailEl = form.createEl("input", { type: "email", placeholder: t("login.email.placeholder") });
 
         form.createEl("label", { text: t("login.password") });
-        this.passwordEl = form.createEl("input", { type: "password", placeholder: t("login.password.placeholder") }) as HTMLInputElement;
+        this.passwordEl = form.createEl("input", { type: "password", placeholder: t("login.password.placeholder") });
 
         const btnRow = form.createDiv({ cls: "supsync-login-buttons" });
 

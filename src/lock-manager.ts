@@ -1,6 +1,6 @@
 import { Notice } from "obsidian";
 import type { SupSyncSettings } from "./types";
-import { LOCK_TTL_MS, LOCK_HEARTBEAT_MS } from "./types";
+import { LOCK_HEARTBEAT_MS } from "./types";
 import {
     acquireLock, refreshLock, releaseLock, getActiveLock,
 } from "./supabase-api";
@@ -95,7 +95,7 @@ export class LockManager {
 
     releaseAll(): Promise<void[]> {
         const releases: Promise<void>[] = [];
-        for (const [key, state] of this.activeLocks) {
+        for (const [, state] of this.activeLocks) {
             if (state.heartbeatTimer !== null) {
                 window.clearInterval(state.heartbeatTimer);
             }

@@ -1,5 +1,5 @@
 import {
-    App, Notice, Plugin, TFile,
+    Notice, Plugin, TFile,
 } from "obsidian";
 import type { SupSyncSettings, SyncConfigData } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
@@ -55,7 +55,7 @@ export default class SupSyncPlugin extends Plugin {
         );
 
         this.registerCommands();
-        this.addRibbonIcon("refresh-cw", "SupSync: Sync now", () => {
+        this.addRibbonIcon("refresh-cw", "Sync now", () => {
             void this.syncNow();
         });
         this.addSettingTab(new SupSyncSettingTab(this.app, this));
@@ -63,11 +63,13 @@ export default class SupSyncPlugin extends Plugin {
         await this.restoreSession();
     }
 
-    async onunload(): Promise<void> {
-        stopPolling();
-        cleanupSync();
-        await lockManager.releaseAll();
-        realtimeManager.disconnect();
+    onunload(): void {
+        void (async () => {
+            stopPolling();
+            cleanupSync();
+            await lockManager.releaseAll();
+            realtimeManager.disconnect();
+        })();
     }
 
     // --- Settings ---
@@ -99,7 +101,7 @@ export default class SupSyncPlugin extends Plugin {
                 initSyncManager(
                     this.app, this.settings,
                     this.currentUserId, this.vaultId,
-                    () => {},
+                    () => void 0,
                 );
                 startPolling();
                 realtimeManager.connect(this.vaultId);
@@ -160,60 +162,58 @@ export default class SupSyncPlugin extends Plugin {
 
     private registerCommands(): void {
         this.addCommand({
-            id: "supsync-sync-now",
+            id: "sync-now",
             name: t("cmd.syncNow"),
             callback: () => { void this.syncNow(); },
         });
 
         this.addCommand({
-            id: "supsync-sign-in",
+            id: "sign-in",
             name: t("cmd.signIn"),
             callback: () => { this.openLogin(); },
         });
 
         this.addCommand({
-            id: "supsync-sign-out",
+            id: "sign-out",
             name: t("cmd.signOut"),
-            callback: async () => {
-                realtimeManager.disconnect();
-                await signOut();
-                stopPolling();
-                cleanupSync();
-                lockManager.releaseAll();
-                this.currentUserId = "";
-                setCurrentUserId("");
-                new Notice(t("plugin.signedOut"));
+            callback: () => {
+                void (async () => {
+                    realtimeManager.disconnect();
+                    await signOut();
+                    stopPolling();
+                    cleanupSync();
+                    await lockManager.releaseAll();
+                    this.currentUserId = "";
+                    setCurrentUserId("");
+                    new Notice(t("plugin.signedOut"));
+                })();
             },
         });
 
         this.addCommand({
-            id: "supsync-setup-vault",
+            id: "setup-vault",
             name: t("cmd.createVault"),
             callback: () => { void this.setupVault(); },
         });
 
         this.addCommand({
-            id: "supsync-join-vault",
+            id: "join-vault",
             name: t("cmd.joinVault"),
             callback: () => { this.openJoinVault(); },
         });
 
         this.addCommand({
-            id: "supsync-open-setup-wizard",
+            id: "open-setup-wizard",
             name: t("cmd.openWizard"),
             callback: () => { this.openOnboarding(); },
         });
 
         this.addCommand({
-            id: "supsync-open-settings",
+            id: "open-settings",
             name: t("cmd.openSettings"),
             callback: () => {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const setting = (this.app as any).setting;
-                if (setting) {
-                    setting.open();
-                    setting.openTabById(this.manifest.id);
-                }
+                this.app.setting.open();
+                this.app.setting.openTabById(this.manifest.id);
             },
         });
     }
@@ -239,7 +239,7 @@ export default class SupSyncPlugin extends Plugin {
         if (this.vaultId) {
             initSyncManager(
                 this.app, this.settings,
-                this.currentUserId, this.vaultId, () => {},
+                this.currentUserId, this.vaultId, () => void 0,
             );
             startPolling();
             realtimeManager.connect(this.vaultId);
@@ -265,7 +265,7 @@ export default class SupSyncPlugin extends Plugin {
             await this.saveVaultConfig(vault.id, vault.name);
             initSyncManager(
                 this.app, this.settings,
-                this.currentUserId, this.vaultId, () => {},
+                this.currentUserId, this.vaultId, () => void 0,
             );
             startPolling();
             realtimeManager.connect(this.vaultId);
@@ -281,18 +281,20 @@ export default class SupSyncPlugin extends Plugin {
             new Notice(t("plugin.signInFirst"));
             return;
         }
-        new JoinVaultModal(this.app, async (vaultId, vaultName) => {
-            this.vaultId = vaultId;
-            this.vaultName = vaultName;
-            setVaultId(vaultId);
-            await this.saveVaultConfig(vaultId, vaultName);
-            initSyncManager(
-                this.app, this.settings,
-                this.currentUserId, this.vaultId, () => {},
-            );
-            startPolling();
-            realtimeManager.connect(this.vaultId);
-            new Notice(t("plugin.joined", { vault: vaultName }));
+        new JoinVaultModal(this.app, (vaultId, vaultName) => {
+            void (async () => {
+                this.vaultId = vaultId;
+                this.vaultName = vaultName;
+                setVaultId(vaultId);
+                await this.saveVaultConfig(vaultId, vaultName);
+                initSyncManager(
+                    this.app, this.settings,
+                    this.currentUserId, this.vaultId, () => void 0,
+                );
+                startPolling();
+                realtimeManager.connect(this.vaultId);
+                new Notice(t("plugin.joined", { vault: vaultName }));
+            })();
         }).open();
     }
 }

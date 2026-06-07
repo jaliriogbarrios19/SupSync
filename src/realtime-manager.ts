@@ -159,14 +159,14 @@ export class RealtimeManager {
         if (!type) return;
 
         if (type === "INSERT" && payload.record) {
-            const rec = payload.record as Record<string, unknown>;
+            const rec = payload.record;
             this.onLockChange(
                 rec.path as string,
                 rec.user_id as string,
                 "acquired",
             );
         } else if (type === "DELETE" && payload.old_record) {
-            const rec = payload.old_record as Record<string, unknown>;
+            const rec = payload.old_record;
             this.onLockChange(
                 rec.path as string,
                 null,
