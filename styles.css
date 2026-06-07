@@ -1,0 +1,193 @@
+/* SupSync Plugin Styles */
+
+/* Login Modal */
+.supsync-login-modal h2 {
+    margin-bottom: 16px;
+}
+
+.supsync-login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.supsync-login-form label {
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.supsync-login-form input {
+    padding: 6px 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+}
+
+.supsync-login-message {
+    margin-bottom: 12px;
+    min-height: 20px;
+}
+
+.supsync-msg-error {
+    color: var(--text-error);
+}
+
+.supsync-msg-success {
+    color: var(--text-success);
+}
+
+.supsync-msg-info {
+    color: var(--text-muted);
+}
+
+.supsync-login-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.supsync-login-buttons button {
+    padding: 6px 14px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    cursor: pointer;
+}
+
+.supsync-toggle-btn,
+.supsync-cancel-btn {
+    background: var(--background-secondary) !important;
+    color: var(--text-normal) !important;
+}
+
+/* Onboarding Modal */
+.supsync-onboard-modal {
+    max-width: 560px;
+}
+
+.supsync-onboard-header {
+    margin-bottom: 16px;
+}
+
+.supsync-onboard-progress {
+    font-size: 0.85em;
+    color: var(--text-muted);
+}
+
+.supsync-onboard-header h2 {
+    margin: 4px 0 0 0;
+}
+
+.supsync-onboard-body {
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.supsync-onboard-body ul {
+    padding-left: 20px;
+}
+
+.supsync-onboard-body li {
+    margin: 4px 0;
+}
+
+.supsync-onboard-hint {
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+.supsync-onboard-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.supsync-onboard-footer button {
+    padding: 6px 16px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Conflict Modal */
+.supsync-conflict-modal {
+    max-width: 700px;
+}
+
+.supsync-conflict-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.supsync-conflict-buttons button {
+    padding: 6px 14px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.supsync-diff-container {
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: var(--font-monospace);
+    font-size: 0.85em;
+    margin: 12px 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+}
+
+.supsync-diff-label {
+    display: flex;
+    background: var(--background-secondary);
+}
+
+.supsync-diff-local-header,
+.supsync-diff-remote-header {
+    flex: 1;
+    padding: 4px 8px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.supsync-diff-local-header {
+    border-right: 1px solid var(--background-modifier-border);
+}
+
+.supsync-diff-side {
+    display: flex;
+    flex-direction: column;
+}
+
+.supsync-diff-row {
+    display: flex;
+}
+
+.supsync-diff-row span {
+    flex: 1;
+    padding: 2px 8px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.supsync-diff-row span:first-child {
+    border-right: 1px solid var(--background-modifier-border);
+}
+
+.supsync-diff-same {
+    color: var(--text-muted);
+}
+
+.supsync-diff-changed {
+    background: rgba(var(--color-yellow-rgb), 0.15);
+    color: var(--text-normal);
+}
+
+.supsync-diff-more {
+    padding: 4px 8px;
+    color: var(--text-muted);
+    font-style: italic;
+}
