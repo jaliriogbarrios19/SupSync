@@ -1,5 +1,6 @@
-import { App, Modal, Notice, Setting } from "obsidian";
+import { App, Modal, Setting } from "obsidian";
 import { joinVault, getVault } from "./supabase-api";
+import { t } from "./i18n";
 
 export class JoinVaultModal extends Modal {
     private vaultIdEl!: HTMLInputElement;
@@ -17,10 +18,10 @@ export class JoinVaultModal extends Modal {
         contentEl.empty();
         contentEl.addClass("supsync-login-modal");
 
-        new Setting(contentEl).setName("Join a shared vault").setHeading();
+        new Setting(contentEl).setName(t("join.title")).setHeading();
 
         contentEl.createEl("p", {
-            text: "Ask your vault admin for the Vault ID. You can find it in the vault's .supsync-config.json file.",
+            text: t("join.description"),
             cls: "supsync-msg-info",
         });
 
@@ -28,21 +29,21 @@ export class JoinVaultModal extends Modal {
 
         const form = contentEl.createDiv({ cls: "supsync-login-form" });
 
-        form.createEl("label", { text: "Vault ID" });
+        form.createEl("label", { text: t("join.label") });
         this.vaultIdEl = form.createEl("input", {
             type: "text",
-            placeholder: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+            placeholder: t("join.placeholder"),
         }) as HTMLInputElement;
 
         const btnRow = form.createDiv({ cls: "supsync-login-buttons" });
 
-        const joinBtn = btnRow.createEl("button", { text: "Join vault" });
+        const joinBtn = btnRow.createEl("button", { text: t("join.btn.join") });
         joinBtn.addEventListener("click", () => {
             void this.submit();
         });
 
         const cancelBtn = btnRow.createEl("button", {
-            text: "Cancel",
+            text: t("join.btn.cancel"),
             cls: "supsync-cancel-btn",
         });
         cancelBtn.addEventListener("click", () => this.close());
@@ -51,29 +52,29 @@ export class JoinVaultModal extends Modal {
     private async submit(): Promise<void> {
         const vaultId = this.vaultIdEl.value.trim();
         if (!vaultId) {
-            this.showMessage("Please enter a Vault ID.", "error");
+            this.showMessage(t("join.error.emptyId"), "error");
             return;
         }
 
-        this.showMessage("Joining vault...", "info");
+        this.showMessage(t("join.joining"), "info");
 
         try {
             const vault = await getVault(vaultId);
             if (!vault) {
-                this.showMessage("Vault not found. Check the ID and try again.", "error");
+                this.showMessage(t("join.error.notFound"), "error");
                 return;
             }
 
             await joinVault(vaultId);
 
-            this.showMessage(`Joined '${vault.name}'!`, "success");
+            this.showMessage(t("join.success", { vault: vault.name }), "success");
             window.setTimeout(() => {
                 if (this.closed) return;
                 void this.callback(vaultId, vault.name);
                 this.close();
             }, 800);
         } catch (err) {
-            const msg = err instanceof Error ? err.message : "Failed to join vault";
+            const msg = err instanceof Error ? err.message : t("join.error.notFound");
             this.showMessage(msg, "error");
         }
     }

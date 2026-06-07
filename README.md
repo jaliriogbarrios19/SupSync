@@ -8,6 +8,7 @@ Multi-user Obsidian vault sync via [Supabase](https://supabase.com) with real-ti
 - **File locking** — automatic lock acquisition when editing, with heartbeat and idle timeout
 - **Conflict resolution** — side-by-side diff modal when the same file is modified locally and remotely
 - **Binary file support** — images, PDFs, and audio synced via Supabase Storage
+- **Multi-language** — English and Spanish, auto-detected from Obsidian settings
 - **Multi-user vaults** — create a vault and invite team members by sharing a Vault ID
 - **Onboarding wizard** — step-by-step guide to set up Supabase from scratch
 
@@ -107,6 +108,10 @@ src/
   main.ts            Plugin entry point, commands, session restore
   settings.ts        Settings tab UI
   types.ts           Shared types and constants
+  i18n/
+    index.ts         Locale loader and t() function
+    en.json          English strings
+    es.json          Spanish strings
   supabase-client.ts Auth, REST helpers, storage upload/download
   supabase-api.ts    Vault CRUD operations
   sync-manager.ts    Change queue, polling, push/pull orchestration
@@ -121,6 +126,12 @@ src/
 sql/
   setup.sql          Supabase schema, RLS policies, triggers
 ```
+
+### Adding a new language
+
+1. Copy `src/i18n/en.json` to `src/i18n/<lang>.json` (use the [Obsidian language code](https://github.com/obsidianmd/obsidian-translations?tab=readme-ov-file#existing-languages))
+2. Translate all values
+3. Import and register it in `src/i18n/index.ts`
 
 ## License
 

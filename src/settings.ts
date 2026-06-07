@@ -1,7 +1,7 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type SupSyncPlugin from "./main";
 import type { SupSyncSettings } from "./types";
-import { DEFAULT_SETTINGS } from "./types";
+import { t } from "./i18n";
 
 export class SupSyncSettingTab extends PluginSettingTab {
     plugin: SupSyncPlugin;
@@ -20,15 +20,15 @@ export class SupSyncSettingTab extends PluginSettingTab {
         containerEl.empty();
 
         new Setting(containerEl)
-            .setName("Supabase Project")
+            .setName(t("settings.heading.supabase"))
             .setHeading();
 
         new Setting(containerEl)
-            .setName("Project URL")
-            .setDesc("The URL of your Supabase project (e.g., https://abcxyz.supabase.co)")
+            .setName(t("settings.url"))
+            .setDesc(t("settings.url.desc"))
             .addText((text) =>
                 text
-                    .setPlaceholder("https://your-project.supabase.co")
+                    .setPlaceholder(t("settings.url.placeholder"))
                     .setValue(this.plugin.settings.supabaseUrl)
                     .onChange(async (value) => {
                         this.plugin.settings.supabaseUrl = value.trim();
@@ -37,10 +37,10 @@ export class SupSyncSettingTab extends PluginSettingTab {
             );
 
         new Setting(containerEl)
-            .setName("Anon Key")
-            .setDesc("Your Supabase project's anon/public key")
+            .setName(t("settings.anonKey"))
+            .setDesc(t("settings.anonKey.desc"))
             .addText((text) => {
-                text.setPlaceholder("eyJhbGciOi...")
+                text.setPlaceholder(t("settings.anonKey.placeholder"))
                     .setValue(this.plugin.settings.supabaseAnonKey);
                 text.inputEl.type = "password";
                 text.onChange(async (value) => {
@@ -50,15 +50,15 @@ export class SupSyncSettingTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName("Sync")
+            .setName(t("settings.heading.sync"))
             .setHeading();
 
         new Setting(containerEl)
-            .setName("Sync interval (minutes)")
-            .setDesc("0 = manual sync only. Polling interval for changes from server.")
+            .setName(t("settings.syncInterval"))
+            .setDesc(t("settings.syncInterval.desc"))
             .addText((text) =>
                 text
-                    .setPlaceholder("0")
+                    .setPlaceholder(t("settings.syncInterval.placeholder"))
                     .setValue(String(this.plugin.settings.syncInterval))
                     .onChange(async (value) => {
                         const n = parseInt(value, 10);
@@ -68,13 +68,13 @@ export class SupSyncSettingTab extends PluginSettingTab {
             );
 
         new Setting(containerEl)
-            .setName("Conflict resolution")
-            .setDesc("What happens when local and remote versions of the same note differ.")
+            .setName(t("settings.conflictMode"))
+            .setDesc(t("settings.conflictMode.desc"))
             .addDropdown((dropdown) =>
                 dropdown
-                    .addOption("local-wins", "Local wins")
-                    .addOption("remote-wins", "Remote wins")
-                    .addOption("ask", "Ask every time")
+                    .addOption("local-wins", t("settings.conflictMode.local"))
+                    .addOption("remote-wins", t("settings.conflictMode.remote"))
+                    .addOption("ask", t("settings.conflictMode.ask"))
                     .setValue(this.plugin.settings.conflictMode)
                     .onChange(async (value) => {
                         this.plugin.settings.conflictMode = value as SupSyncSettings["conflictMode"];
@@ -83,11 +83,11 @@ export class SupSyncSettingTab extends PluginSettingTab {
             );
 
         new Setting(containerEl)
-            .setName("Storage limit (MB)")
-            .setDesc("Warning threshold is set at 80% of this value. Free tier: 1024 MB.")
+            .setName(t("settings.storageLimit"))
+            .setDesc(t("settings.storageLimit.desc"))
             .addText((text) =>
                 text
-                    .setPlaceholder("1024")
+                    .setPlaceholder(t("settings.storageLimit.placeholder"))
                     .setValue(String(this.plugin.settings.storageLimitMB))
                     .onChange(async (value) => {
                         const n = parseInt(value, 10);
@@ -97,15 +97,15 @@ export class SupSyncSettingTab extends PluginSettingTab {
             );
 
         new Setting(containerEl)
-            .setName("Excluded paths")
+            .setName(t("settings.heading.excluded"))
             .setHeading();
 
         new Setting(containerEl)
-            .setName("Paths to skip")
-            .setDesc("Comma-separated list of path prefixes to exclude from sync.")
+            .setName(t("settings.excludedPaths"))
+            .setDesc(t("settings.excludedPaths.desc"))
             .addTextArea((text) => {
                 text.setValue(this.plugin.settings.excludedPaths.join(", "))
-                    .setPlaceholder(".git/, .obsidian/, .trash/, .DS_Store, Thumbs.db")
+                    .setPlaceholder(t("settings.excludedPaths.placeholder"))
                     .onChange(async (value) => {
                         this.plugin.settings.excludedPaths = value
                             .split(",")
@@ -116,23 +116,23 @@ export class SupSyncSettingTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName("Vault")
+            .setName(t("settings.heading.vault"))
             .setHeading();
 
         new Setting(containerEl)
-            .setName("Setup Wizard")
-            .setDesc("Walk through the step-by-step setup to connect this vault to Supabase.")
+            .setName(t("settings.setupWizard"))
+            .setDesc(t("settings.setupWizard.desc"))
             .addButton((btn) =>
-                btn.setButtonText("Open setup wizard").onClick(() => {
+                btn.setButtonText(t("settings.setupWizard.btn")).onClick(() => {
                     this.plugin.openOnboarding();
                 }),
             );
 
         new Setting(containerEl)
-            .setName("Sync now")
-            .setDesc("Force a full sync with the server.")
+            .setName(t("settings.syncNow"))
+            .setDesc(t("settings.syncNow.desc"))
             .addButton((btn) =>
-                btn.setButtonText("Sync now").onClick(() => {
+                btn.setButtonText(t("settings.syncNow.btn")).onClick(() => {
                     void (async () => {
                         await this.plugin.syncManager.fullSync();
                     })();

@@ -5,6 +5,7 @@ import {
     acquireLock, refreshLock, releaseLock, getActiveLock,
 } from "./supabase-api";
 import { getAccessToken, getCurrentUserId } from "./supabase-client";
+import { t } from "./i18n";
 
 interface LockState {
     lockId: string;
@@ -68,7 +69,7 @@ export class LockManager {
             await refreshLock(state.lockId);
         } catch {
             this.release(state.vaultId, state.path);
-            new Notice("Lost lock on " + state.path);
+            new Notice(t("plugin.lostLock", { path: state.path }));
         }
     }
 

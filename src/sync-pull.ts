@@ -7,6 +7,7 @@ import {
 import { getAccessToken } from "./supabase-client";
 import { pullBinaryFiles } from "./binary-sync";
 import { ConflictModal } from "./conflict-modal";
+import { t } from "./i18n";
 
 interface SyncPullDeps {
     app: App;
@@ -86,17 +87,17 @@ export async function pullChanges(deps: SyncPullDeps): Promise<void> {
 export async function fullSync(deps: SyncPullDeps): Promise<void> {
     const { vaultId, lastSyncAt } = deps;
     if (!vaultId || !getAccessToken()) {
-        new Notice("SupSync: Please sign in first.");
+        new Notice(t("plugin.pleaseSignIn"));
         return;
     }
     lastSyncAt.value = "";
     try {
         await pullChanges(deps);
         await deps.flushQueue();
-        new Notice("SupSync: Sync complete.");
+        new Notice(t("plugin.syncComplete"));
     } catch (err) {
         console.error("[SupSync] Full sync failed:", err);
-        new Notice("SupSync: Sync failed. Check console for details.");
+        new Notice(t("plugin.syncFailed"));
     }
 }
 
@@ -111,7 +112,11 @@ async function checkStorageWarning(
         if (pct > STORAGE_WARNING_THRESHOLD) {
             const usedMB = Math.round(used / (1024 * 1024));
             new Notice(
-                `SupSync: Storage ${usedMB}/${settings.storageLimitMB} MB (${Math.round(pct * 100)}%). Less than 20% remaining.`,
+                t("plugin.storageWarning", {
+                    used: usedMB,
+                    limit: settings.storageLimitMB,
+                    pct: Math.round(pct * 100),
+                }),
                 8000,
             );
         }

@@ -19,6 +19,7 @@ import {
     setAccessTokenForSync, startPolling, stopPolling,
     fullSync, cleanup as cleanupSync,
 } from "./sync-manager";
+import { initLocale, t } from "./i18n";
 
 const SYNC_CONFIG_FILENAME = ".supsync-config.json";
 
@@ -33,11 +34,12 @@ export default class SupSyncPlugin extends Plugin {
 
     async onload(): Promise<void> {
         await this.loadSettings();
+        initLocale();
         setSupabaseSettings(this.settings);
 
         lockManager = new LockManager(this.settings, (path, lockedBy) => {
             if (lockedBy) {
-                new Notice(`SupSync: ${lockedBy} is editing ${path}`);
+                new Notice(t("plugin.isEditing", { user: lockedBy, path }));
             }
         });
 
@@ -45,9 +47,9 @@ export default class SupSyncPlugin extends Plugin {
             this.settings.supabaseUrl,
             (path, userId, action) => {
                 if (action === "acquired" && userId) {
-                    new Notice(`SupSync: Lock acquired on ${path}`);
+                    new Notice(t("plugin.lockAcquired", { path }));
                 } else if (action === "released") {
-                    new Notice(`SupSync: ${path} is now free to edit`);
+                    new Notice(t("plugin.lockReleased", { path }));
                 }
             },
         );
@@ -101,7 +103,7 @@ export default class SupSyncPlugin extends Plugin {
                 );
                 startPolling();
                 realtimeManager.connect(this.vaultId);
-                new Notice(`SupSync: Connected as ${user.email} to ${this.vaultName}`);
+                new Notice(t("plugin.connected", { email: user.email, vault: this.vaultName }));
             }
         }
     }
@@ -144,11 +146,11 @@ export default class SupSyncPlugin extends Plugin {
 
     private async syncNow(): Promise<void> {
         if (!this.vaultId) {
-            new Notice("SupSync: Set up your vault first. Use the setup wizard.");
+            new Notice(t("plugin.setupFirst"));
             return;
         }
         if (!getAccessToken()) {
-            new Notice("SupSync: Sign in first.");
+            new Notice(t("plugin.signInFirst"));
             return;
         }
         await fullSync();
@@ -159,19 +161,19 @@ export default class SupSyncPlugin extends Plugin {
     private registerCommands(): void {
         this.addCommand({
             id: "supsync-sync-now",
-            name: "Sync now",
+            name: t("cmd.syncNow"),
             callback: () => { void this.syncNow(); },
         });
 
         this.addCommand({
             id: "supsync-sign-in",
-            name: "Sign in",
+            name: t("cmd.signIn"),
             callback: () => { this.openLogin(); },
         });
 
         this.addCommand({
             id: "supsync-sign-out",
-            name: "Sign out",
+            name: t("cmd.signOut"),
             callback: async () => {
                 realtimeManager.disconnect();
                 await signOut();
@@ -180,31 +182,31 @@ export default class SupSyncPlugin extends Plugin {
                 lockManager.releaseAll();
                 this.currentUserId = "";
                 setCurrentUserId("");
-                new Notice("SupSync: Signed out.");
+                new Notice(t("plugin.signedOut"));
             },
         });
 
         this.addCommand({
             id: "supsync-setup-vault",
-            name: "Create shared vault",
+            name: t("cmd.createVault"),
             callback: () => { void this.setupVault(); },
         });
 
         this.addCommand({
             id: "supsync-join-vault",
-            name: "Join vault",
+            name: t("cmd.joinVault"),
             callback: () => { this.openJoinVault(); },
         });
 
         this.addCommand({
             id: "supsync-open-setup-wizard",
-            name: "Open setup wizard",
+            name: t("cmd.openWizard"),
             callback: () => { this.openOnboarding(); },
         });
 
         this.addCommand({
             id: "supsync-open-settings",
-            name: "Open settings",
+            name: t("cmd.openSettings"),
             callback: () => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const setting = (this.app as any).setting;
@@ -227,7 +229,7 @@ export default class SupSyncPlugin extends Plugin {
     private async onLoginSuccess(): Promise<void> {
         const user = await getCurrentUser();
         if (!user) {
-            new Notice("SupSync: Could not verify login.");
+            new Notice(t("plugin.verifyLogin"));
             return;
         }
         this.currentUserId = user.id;
@@ -241,9 +243,9 @@ export default class SupSyncPlugin extends Plugin {
             );
             startPolling();
             realtimeManager.connect(this.vaultId);
-            new Notice(`SupSync: Connected as ${user.email} to ${this.vaultName}`);
+            new Notice(t("plugin.connected", { email: user.email, vault: this.vaultName }));
         } else {
-            new Notice(`SupSync: Signed in as ${user.email}. Use 'Create shared vault' or 'Join vault'.`);
+            new Notice(t("plugin.signInPrompt", { email: user.email }));
         }
     }
 
@@ -251,7 +253,7 @@ export default class SupSyncPlugin extends Plugin {
 
     private async setupVault(): Promise<void> {
         if (!getAccessToken()) {
-            new Notice("SupSync: Sign in first.");
+            new Notice(t("plugin.signInFirst"));
             return;
         }
         const vaultName = this.app.vault.getName();
@@ -267,16 +269,16 @@ export default class SupSyncPlugin extends Plugin {
             );
             startPolling();
             realtimeManager.connect(this.vaultId);
-            new Notice(`SupSync: Vault '${vaultName}' created! Share with your team.`);
+            new Notice(t("plugin.vaultCreated", { name: vaultName }));
         } catch (err) {
             const msg = err instanceof Error ? err.message : "Unknown error";
-            new Notice(`SupSync: Failed to create vault: ${msg}`);
+            new Notice(t("plugin.vaultCreateFailed", { error: msg }));
         }
     }
 
     private openJoinVault(): void {
         if (!getAccessToken()) {
-            new Notice("SupSync: Sign in first.");
+            new Notice(t("plugin.signInFirst"));
             return;
         }
         new JoinVaultModal(this.app, async (vaultId, vaultName) => {
@@ -290,7 +292,7 @@ export default class SupSyncPlugin extends Plugin {
             );
             startPolling();
             realtimeManager.connect(this.vaultId);
-            new Notice(`SupSync: Joined '${vaultName}'!`);
+            new Notice(t("plugin.joined", { vault: vaultName }));
         }).open();
     }
 }

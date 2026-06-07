@@ -1,4 +1,5 @@
 import { App, Modal, Setting } from "obsidian";
+import { t } from "./i18n";
 
 export type ConflictChoice = "local" | "remote";
 
@@ -32,9 +33,10 @@ export class ConflictModal extends Modal {
         contentEl.empty();
         contentEl.addClass("supsync-conflict-modal");
 
-        new Setting(contentEl).setName("Sync conflict").setHeading();
+        new Setting(contentEl).setName(t("conflict.title")).setHeading();
+
         contentEl.createEl("p", {
-            text: `${this.path} was modified both locally and remotely.`,
+            text: t("conflict.description", { path: this.path }),
         });
 
         this.renderDiff();
@@ -42,7 +44,7 @@ export class ConflictModal extends Modal {
         const buttons = contentEl.createDiv({ cls: "supsync-conflict-buttons" });
 
         const localBtn = buttons.createEl("button", {
-            text: "Keep local version",
+            text: t("conflict.keepLocal"),
             cls: "mod-cta",
         });
         localBtn.addEventListener("click", () => {
@@ -51,7 +53,7 @@ export class ConflictModal extends Modal {
         });
 
         const remoteBtn = buttons.createEl("button", {
-            text: "Keep remote version",
+            text: t("conflict.keepRemote"),
         });
         remoteBtn.addEventListener("click", () => {
             this.resolve("remote");
@@ -59,7 +61,7 @@ export class ConflictModal extends Modal {
         });
 
         const cancelBtn = buttons.createEl("button", {
-            text: "Skip for now",
+            text: t("conflict.skip"),
             cls: "supsync-cancel-btn",
         });
         cancelBtn.addEventListener("click", () => {
@@ -73,10 +75,10 @@ export class ConflictModal extends Modal {
         const diffContainer = contentEl.createDiv({ cls: "supsync-diff-container" });
 
         const localLabel = diffContainer.createDiv({ cls: "supsync-diff-label" });
-        localLabel.createSpan({ text: "Local", cls: "supsync-diff-local-header" });
+        localLabel.createSpan({ text: t("conflict.labelLocal"), cls: "supsync-diff-local-header" });
 
         const remoteLabel = diffContainer.createDiv({ cls: "supsync-diff-label" });
-        remoteLabel.createSpan({ text: "Remote", cls: "supsync-diff-remote-header" });
+        remoteLabel.createSpan({ text: t("conflict.labelRemote"), cls: "supsync-diff-remote-header" });
 
         const localLines = this.localContent.split("\n");
         const remoteLines = this.remoteContent.split("\n");
@@ -91,24 +93,20 @@ export class ConflictModal extends Modal {
             const remoteLine = i < remoteLines.length ? remoteLines[i] : "";
             const isDiff = localLine !== remoteLine;
 
-            const localSpan = row.createSpan({
-                text: localLine || "(empty)",
-                cls: isDiff
-                    ? "supsync-diff-changed"
-                    : "supsync-diff-same",
+            row.createSpan({
+                text: localLine || t("conflict.empty"),
+                cls: isDiff ? "supsync-diff-changed" : "supsync-diff-same",
             });
 
-            const remoteSpan = row.createSpan({
-                text: remoteLine || "(empty)",
-                cls: isDiff
-                    ? "supsync-diff-changed"
-                    : "supsync-diff-same",
+            row.createSpan({
+                text: remoteLine || t("conflict.empty"),
+                cls: isDiff ? "supsync-diff-changed" : "supsync-diff-same",
             });
         }
 
         if (maxLen > maxShow) {
             diffContainer.createEl("p", {
-                text: `... and ${maxLen - maxShow} more lines`,
+                text: t("conflict.moreLines", { count: maxLen - maxShow }),
                 cls: "supsync-diff-more",
             });
         }
