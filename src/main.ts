@@ -1,8 +1,8 @@
 import {
-    Notice, Plugin, TFile,
+    Notice, Plugin, TFile, WorkspaceLeaf,
 } from "obsidian";
 import type { SupSyncSettings, SyncConfigData } from "./types";
-import { DEFAULT_SETTINGS } from "./types";
+import { DEFAULT_SETTINGS, VIEW_TYPE_DASHBOARD } from "./types";
 import { SupSyncSettingTab } from "./settings";
 import { LoginModal } from "./login-modal";
 import { OnboardModal } from "./onboard-modal";
@@ -21,6 +21,7 @@ import {
 } from "./sync-manager";
 import { initLocale, t } from "./i18n";
 import { registerStatusBar, setSyncState, clearSyncErrors } from "./status-bar";
+import { DashboardView } from "./views/dashboard-view";
 
 const SYNC_CONFIG_FILENAME = ".supsync-config.json";
 const SETTINGS_SHARED_FILENAME = ".supsync-settings.json";
@@ -69,6 +70,19 @@ export default class SupSyncPlugin extends Plugin {
         });
 
         this.addSettingTab(new SupSyncSettingTab(this.app, this));
+
+        this.registerView(
+            VIEW_TYPE_DASHBOARD,
+            (leaf) => new DashboardView(leaf,
+                () => this.vaultId,
+                () => this.vaultName,
+                () => this.syncNow()
+            ),
+        );
+
+        this.app.workspace.onLayoutReady(() => {
+            void this.activateView(VIEW_TYPE_DASHBOARD);
+        });
 
         await this.restoreSession();
     }
@@ -199,6 +213,24 @@ export default class SupSyncPlugin extends Plugin {
         });
         progress.hide();
         new Notice(t("plugin.syncComplete"));
+    }
+
+    private async activateView(viewType: string): Promise<void> {
+        const { workspace } = this.app;
+        let leaf: WorkspaceLeaf | null = null;
+        const leaves = workspace.getLeavesOfType(viewType);
+
+        if (leaves.length > 0) {
+            leaf = leaves[0];
+        } else {
+            leaf = workspace.getLeaf(true);
+            if (!leaf) return;
+            await leaf.setViewState({ type: viewType, active: true });
+        }
+
+        if (leaf) {
+            workspace.setActiveLeaf(leaf, { focus: true });
+        }
     }
 
     // --- Commands ---

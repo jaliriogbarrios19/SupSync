@@ -60,6 +60,11 @@
   "settings.syncNow.desc": "Force a full sync with the server.",
   "settings.syncNow.btn": "Sync now",
 
+  "dashboard.title": "SupSync",
+  "dashboard.vault": "Vault: {name}",
+  "dashboard.syncNow": "Sync",
+  "dashboard.fullSync": "Full sync",
+
   "conflict.title": "Sync conflict",
   "conflict.description": "{path} was modified both locally and remotely.",
   "conflict.keepLocal": "Keep local version",

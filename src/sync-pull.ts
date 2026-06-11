@@ -1,4 +1,4 @@
-import { App, Notice, TFile } from "obsidian";
+import { App, Notice, TFile, normalizePath } from "obsidian";
 import type { SupSyncSettings } from "./types";
 import { STORAGE_WARNING_THRESHOLD } from "./types";
 import {
@@ -32,6 +32,7 @@ export async function pullChanges(deps: SyncPullDeps): Promise<void> {
 
         for (let i = 0; i < total; i++) {
             const note = notes[i];
+            if (isPathExcluded(note.path, settings.excludedPaths, app.vault.configDir)) continue;
             if (onProgress) onProgress(i + 1, total);
 
             isRemoteChange.value = true;
@@ -69,9 +70,17 @@ export async function pullChanges(deps: SyncPullDeps): Promise<void> {
                         await vault.modify(existing, note.content);
                     }
                 }
-            } else {
-                await vault.create(note.path, note.content);
-            }
+                } else {
+                    const folder = note.path.split("/").slice(0, -1).join("/");
+                    if (folder) {
+                        try {
+                            await vault.createFolder(normalizePath(folder));
+                        } catch {
+                            // ok
+                        }
+                    }
+                    await vault.create(note.path, note.content);
+                }
 
             lastSyncAt.value = maxTimestamp(lastSyncAt.value, note.updated_at);
             isRemoteChange.value = false;
@@ -127,6 +136,13 @@ async function checkStorageWarning(
     } catch {
         // non-critical
     }
+}
+
+function isPathExcluded(path: string, excludedPaths: string[], configDir: string): boolean {
+    if (path.startsWith(configDir + "/") || path === configDir) return true;
+    return excludedPaths.some(
+        (p) => path.startsWith(p) || path.includes("/" + p),
+    );
 }
 
 function maxTimestamp(a: string, b: string): string {

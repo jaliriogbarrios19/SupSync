@@ -75,7 +75,6 @@ export async function fetchNotes(
 ): Promise<SupabaseNote[]> {
     const query: Record<string, string> = {
         vault_id: `eq.${vaultId}`,
-        deleted: "eq.false",
         order: "updated_at.asc",
         select: "*",
     };

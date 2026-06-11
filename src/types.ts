@@ -78,3 +78,5 @@ export interface PendingChange {
 }
 
 export type SyncStatus = "idle" | "pushing" | "pulling" | "error" | "locked";
+
+export const VIEW_TYPE_DASHBOARD = "supsync-dashboard";
