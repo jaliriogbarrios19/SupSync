@@ -172,6 +172,69 @@ export class SupSyncSettingTab extends PluginSettingTab {
                         })();
                     }),
             );
+
+            if (!this.plugin.vaultId) {
+                new Setting(containerEl)
+                    .setName(t("settings.heading.vaultSelect"))
+                    .setHeading();
+
+                const joinForm = containerEl.createDiv("supsync-login-settings");
+                const vaultMsg = joinForm.createDiv("supsync-login-msg");
+
+                const vaultRow = joinForm.createDiv("supsync-login-row");
+                vaultRow.createEl("label", { text: t("settings.joinVault.label") });
+                const vaultInput = vaultRow.createEl("input", {
+                    type: "text",
+                    placeholder: t("settings.joinVault.placeholder"),
+                });
+
+                const joinBtnRow = joinForm.createDiv("supsync-login-btn-row");
+
+                const joinBtn = joinBtnRow.createEl("button", { text: t("settings.joinVault.join") });
+                joinBtn.addEventListener("click", () => {
+                    void (async () => {
+                        const vaultId = vaultInput.value.trim();
+                        if (!vaultId) {
+                            vaultMsg.textContent = t("settings.joinVault.emptyError");
+                            vaultMsg.className = "supsync-login-msg supsync-msg-error";
+                            return;
+                        }
+                        vaultMsg.textContent = t("settings.joinVault.joining");
+                        vaultMsg.className = "supsync-login-msg supsync-msg-info";
+                        try {
+                            const sharedFn = this.plugin.joinVault.bind(this.plugin);
+                            await sharedFn(vaultId);
+                            vaultMsg.textContent = t("settings.joinVault.success");
+                            vaultMsg.className = "supsync-login-msg supsync-msg-success";
+                            window.setTimeout(() => { void this.render(); }, 800);
+                        } catch (err) {
+                            vaultMsg.textContent = err instanceof Error ? err.message : t("settings.joinVault.error");
+                            vaultMsg.className = "supsync-login-msg supsync-msg-error";
+                        }
+                    })();
+                });
+
+                const createBtn = joinBtnRow.createEl("button", {
+                    text: t("settings.joinVault.create"),
+                    cls: "supsync-toggle-btn",
+                });
+                createBtn.addEventListener("click", () => {
+                    void (async () => {
+                        vaultMsg.textContent = t("settings.joinVault.creating");
+                        vaultMsg.className = "supsync-login-msg supsync-msg-info";
+                        try {
+                            await this.plugin.createVault();
+                            vaultMsg.textContent = t("settings.joinVault.created");
+                            vaultMsg.className = "supsync-login-msg supsync-msg-success";
+                            window.setTimeout(() => { void this.render(); }, 800);
+                        } catch (err) {
+                            vaultMsg.textContent = err instanceof Error ? err.message : t("settings.joinVault.error");
+                            vaultMsg.className = "supsync-login-msg supsync-msg-error";
+                        }
+                    })();
+                });
+            }
+
             return;
         }
 

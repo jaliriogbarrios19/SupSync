@@ -14,7 +14,7 @@ import {
     signOut, getCurrentUser, setCurrentUserId, setPersistCallback,
     refreshAccessToken,
 } from "./supabase-client";
-import { createVault } from "./supabase-api";
+import { createVault, getVault, joinVault } from "./supabase-api";
 import {
     initSyncManager, setVaultId,
     startPolling, stopPolling,
@@ -397,6 +397,14 @@ export default class SupSyncPlugin extends Plugin {
 
     // --- Vault setup ---
 
+    async createVault(): Promise<void> {
+        await this.setupVault();
+    }
+
+    async joinVault(vaultId: string): Promise<void> {
+        await this.joinVaultImpl(vaultId);
+    }
+
     private async setupVault(): Promise<void> {
         if (!getAccessToken()) {
             new Notice(t("plugin.signInFirst"));
@@ -409,17 +417,35 @@ export default class SupSyncPlugin extends Plugin {
             this.vaultName = vault.name;
             setVaultId(this.vaultId);
             await this.saveVaultConfig(vault.id, vault.name);
-            initSyncManager(
-                this.app, this.settings,
-                this.currentUserId, this.vaultId, (s) => { setSyncState(s as "idle" | "pushing" | "pulling" | "error"); },
-            );
-            startPolling();
-            realtimeManager.connect(this.vaultId);
-            new Notice(t("plugin.vaultCreated", { name: vaultName }));
+            this.initAndAnnounce(vault.name);
         } catch (err) {
             const msg = err instanceof Error ? err.message : "Unknown error";
             new Notice(t("plugin.vaultCreateFailed", { error: msg }));
         }
+    }
+
+    private async joinVaultImpl(vaultId: string): Promise<void> {
+        if (!getAccessToken()) {
+            throw new Error(t("plugin.signInFirst"));
+        }
+        const vault = await getVault(vaultId);
+        if (!vault) throw new Error(t("join.error.notFound"));
+        await joinVault(vaultId);
+        this.vaultId = vaultId;
+        this.vaultName = vault.name;
+        setVaultId(vaultId);
+        await this.saveVaultConfig(vaultId, vault.name);
+        this.initAndAnnounce(vault.name);
+    }
+
+    private initAndAnnounce(vaultName: string): void {
+        initSyncManager(
+            this.app, this.settings,
+            this.currentUserId, this.vaultId, (s) => { setSyncState(s as "idle" | "pushing" | "pulling" | "error"); },
+        );
+        startPolling();
+        realtimeManager.connect(this.vaultId);
+        new Notice(t("plugin.connected", { email: "", vault: vaultName }));
     }
 
     private openJoinVault(): void {
@@ -433,13 +459,7 @@ export default class SupSyncPlugin extends Plugin {
                 this.vaultName = vaultName;
                 setVaultId(vaultId);
                 await this.saveVaultConfig(vaultId, vaultName);
-                initSyncManager(
-                    this.app, this.settings,
-                    this.currentUserId, this.vaultId, (s) => { setSyncState(s as "idle" | "pushing" | "pulling" | "error"); },
-                );
-                startPolling();
-                realtimeManager.connect(this.vaultId);
-                new Notice(t("plugin.joined", { vault: vaultName }));
+                this.initAndAnnounce(vaultName);
             })();
         }).open();
     }
