@@ -106,7 +106,7 @@ export async function pullChanges(deps: SyncPullDeps): Promise<void> {
 export async function fullSync(deps: SyncPullDeps): Promise<void> {
     const { vaultId, lastSyncAt } = deps;
     if (!vaultId) {
-        new Notice(t("plugin.pleaseSignIn"));
+        new Notice(t("plugin.setupFirst"));
         return;
     }
 
