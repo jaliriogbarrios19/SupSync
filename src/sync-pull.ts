@@ -4,7 +4,7 @@ import { STORAGE_WARNING_THRESHOLD } from "./types";
 import {
     fetchNotes, getStorageUsage,
 } from "./supabase-api";
-import { getAccessToken } from "./supabase-client";
+import { getAccessToken, refreshAccessToken } from "./supabase-client";
 import { pullBinaryFiles } from "./binary-sync";
 import { ConflictModal } from "./conflict-modal";
 import { matchGlob } from "./glob-match";
@@ -23,7 +23,12 @@ interface SyncPullDeps {
 
 export async function pullChanges(deps: SyncPullDeps): Promise<void> {
     const { app, settings, vaultId, lastSyncAt, isRemoteChange, onStatusChange, onProgress } = deps;
-    if (!vaultId || !getAccessToken()) return;
+    if (!vaultId) return;
+
+    if (!getAccessToken()) {
+        const refreshed = await refreshAccessToken();
+        if (!refreshed) return;
+    }
     if (onStatusChange) onStatusChange("pulling");
 
     try {
@@ -100,10 +105,19 @@ export async function pullChanges(deps: SyncPullDeps): Promise<void> {
 
 export async function fullSync(deps: SyncPullDeps): Promise<void> {
     const { vaultId, lastSyncAt } = deps;
-    if (!vaultId || !getAccessToken()) {
+    if (!vaultId) {
         new Notice(t("plugin.pleaseSignIn"));
         return;
     }
+
+    if (!getAccessToken()) {
+        const refreshed = await refreshAccessToken();
+        if (!refreshed) {
+            new Notice(t("plugin.pleaseSignIn"));
+            return;
+        }
+    }
+
     lastSyncAt.value = "";
     try {
         await pullChanges(deps);

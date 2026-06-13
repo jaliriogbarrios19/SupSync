@@ -10,13 +10,14 @@ import { JoinVaultModal } from "./join-vault-modal";
 import { LockManager } from "./lock-manager";
 import { RealtimeManager } from "./realtime-manager";
 import {
-    setSupabaseSettings, getAccessToken,
-    signOut, getCurrentUser, setCurrentUserId,
+    setSupabaseSettings, getAccessToken, getRefreshToken, setRefreshToken,
+    signOut, getCurrentUser, setCurrentUserId, setPersistCallback,
+    refreshAccessToken,
 } from "./supabase-client";
 import { createVault } from "./supabase-api";
 import {
     initSyncManager, setVaultId,
-    setAccessTokenForSync, startPolling, stopPolling,
+    startPolling, stopPolling,
     fullSync, cleanup as cleanupSync,
 } from "./sync-manager";
 import { initLocale, t } from "./i18n";
@@ -39,6 +40,13 @@ export default class SupSyncPlugin extends Plugin {
         await this.loadSettings();
         initLocale();
         setSupabaseSettings(this.settings);
+        setPersistCallback((_access, refresh) => {
+            void (async () => {
+                const data: Record<string, unknown> = { ...this.settings };
+                if (refresh) data._refreshToken = refresh;
+                await this.saveData(data);
+            })();
+        });
 
         lockManager = new LockManager(this.settings, (path, lockedBy) => {
             if (lockedBy) {
@@ -99,8 +107,15 @@ export default class SupSyncPlugin extends Plugin {
     // --- Settings ---
 
     async loadSettings(): Promise<void> {
-        const data = await this.loadData() as Partial<SupSyncSettings> | null;
-        this.settings = { ...DEFAULT_SETTINGS, ...(data || {}) };
+        const data = await this.loadData() as Record<string, unknown> | null;
+        const settingsData = data ? { ...data } : {};
+        const storedRefresh = (settingsData._refreshToken as string) || "";
+        delete settingsData._refreshToken;
+        this.settings = { ...DEFAULT_SETTINGS, ...(settingsData as Partial<SupSyncSettings>) };
+
+        if (storedRefresh) {
+            setRefreshToken(storedRefresh);
+        }
 
         const sharedFile = this.app.vault.getAbstractFileByPath(SETTINGS_SHARED_FILENAME);
         if (sharedFile instanceof TFile) {
@@ -115,7 +130,10 @@ export default class SupSyncPlugin extends Plugin {
     }
 
     async saveSettings(): Promise<void> {
-        await this.saveData(this.settings);
+        const dataToSave: Record<string, unknown> = { ...this.settings };
+        const rt = getRefreshToken();
+        if (rt) dataToSave._refreshToken = rt;
+        await this.saveData(dataToSave);
         setSupabaseSettings(this.settings);
 
         try {
@@ -135,25 +153,28 @@ export default class SupSyncPlugin extends Plugin {
 
     private async restoreSession(): Promise<void> {
         const config = await this.loadVaultConfig();
-        if (config) {
-            this.vaultId = config.vaultId;
-            this.vaultName = config.vaultName;
-            setVaultId(this.vaultId);
+        if (!config) return;
 
-            const user = await getCurrentUser();
-            if (user) {
-                this.currentUserId = user.id;
-                setCurrentUserId(user.id);
-                setAccessTokenForSync(getAccessToken());
-                initSyncManager(
-                    this.app, this.settings,
-                    this.currentUserId, this.vaultId,
-                    (s) => { setSyncState(s as "idle" | "pushing" | "pulling" | "error"); },
-                );
-                startPolling();
-                realtimeManager.connect(this.vaultId);
-                new Notice(t("plugin.connected", { email: user.email, vault: this.vaultName }));
-            }
+        this.vaultId = config.vaultId;
+        this.vaultName = config.vaultName;
+        setVaultId(this.vaultId);
+
+        if (!getAccessToken() && getRefreshToken()) {
+            await refreshAccessToken();
+        }
+
+        const user = await getCurrentUser();
+        if (user) {
+            this.currentUserId = user.id;
+            setCurrentUserId(user.id);
+            initSyncManager(
+                this.app, this.settings,
+                this.currentUserId, this.vaultId,
+                (s) => { setSyncState(s as "idle" | "pushing" | "pulling" | "error"); },
+            );
+            startPolling();
+            realtimeManager.connect(this.vaultId);
+            new Notice(t("plugin.connected", { email: user.email, vault: this.vaultName }));
         }
     }
 
@@ -191,6 +212,22 @@ export default class SupSyncPlugin extends Plugin {
 
     openOnboarding(): void {
         new OnboardModal(this.app).open();
+    }
+
+    onAuthSuccess(email: string): void {
+        void (async () => {
+            if (this.vaultId) {
+                initSyncManager(
+                    this.app, this.settings,
+                    this.currentUserId, this.vaultId, (s) => { setSyncState(s as "idle" | "pushing" | "pulling" | "error"); },
+                );
+                startPolling();
+                realtimeManager.connect(this.vaultId);
+                new Notice(t("plugin.connected", { email, vault: this.vaultName }));
+            } else {
+                new Notice(t("plugin.signInPrompt", { email }));
+            }
+        })();
     }
 
     private async syncNow(): Promise<void> {
@@ -261,6 +298,7 @@ export default class SupSyncPlugin extends Plugin {
                     clearSyncErrors();
                     this.currentUserId = "";
                     setCurrentUserId("");
+                    await this.saveData({ ...this.settings });
                     new Notice(t("plugin.signedOut"));
                 })();
             },
@@ -310,7 +348,6 @@ export default class SupSyncPlugin extends Plugin {
         }
         this.currentUserId = user.id;
         setCurrentUserId(user.id);
-        setAccessTokenForSync(getAccessToken());
 
         if (this.vaultId) {
             initSyncManager(

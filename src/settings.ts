@@ -1,11 +1,16 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import type SupSyncPlugin from "./main";
 import type { SupSyncSettings } from "./types";
 import { t } from "./i18n";
 import { ExclusionPickerModal } from "./exclusion-picker-modal";
+import {
+    signIn, signUp, signOut, getCurrentUser,
+    getAccessToken, setCurrentUserId,
+} from "./supabase-client";
 
 export class SupSyncSettingTab extends PluginSettingTab {
     plugin: SupSyncPlugin;
+    private userEmail = "";
 
     constructor(app: App, plugin: SupSyncPlugin) {
         super(app, plugin);
@@ -16,9 +21,12 @@ export class SupSyncSettingTab extends PluginSettingTab {
         this.render();
     }
 
-    private render(): void {
+    private async render(): Promise<void> {
         const { containerEl } = this;
         containerEl.empty();
+
+        await this.checkAuth();
+        this.renderAuthSection(containerEl);
 
         new Setting(containerEl)
             .setName(t("settings.heading.supabase"))
@@ -126,6 +134,121 @@ export class SupSyncSettingTab extends PluginSettingTab {
                     })();
                 }),
             );
+    }
+
+    private async checkAuth(): Promise<void> {
+        if (getAccessToken()) {
+            const user = await getCurrentUser();
+            this.userEmail = user?.email || "";
+        } else {
+            this.userEmail = "";
+        }
+    }
+
+    private renderAuthSection(containerEl: HTMLElement): void {
+        new Setting(containerEl)
+            .setName(t("settings.heading.account"))
+            .setHeading();
+
+        if (this.userEmail) {
+            const info = new Setting(containerEl);
+            info.setName(t("settings.auth.signedIn"))
+                .setDesc(this.userEmail);
+            info.addButton((btn) =>
+                btn.setButtonText(t("settings.auth.signOut"))
+                    .onClick(() => {
+                        void (async () => {
+                            await signOut();
+                            this.plugin.currentUserId = "";
+                            setCurrentUserId("");
+                            new Notice(t("plugin.signedOut"));
+                            this.render();
+                        })();
+                    }),
+            );
+            return;
+        }
+
+        const formContainer = containerEl.createDiv("supsync-login-settings");
+
+        const emailRow = formContainer.createDiv("supsync-login-row");
+        emailRow.createEl("label", { text: t("login.email") });
+        const emailInput = emailRow.createEl("input", {
+            type: "email",
+            placeholder: t("login.email.placeholder"),
+        }) as HTMLInputElement;
+
+        const passRow = formContainer.createDiv("supsync-login-row");
+        passRow.createEl("label", { text: t("login.password") });
+        const passInput = passRow.createEl("input", {
+            type: "password",
+            placeholder: t("login.password.placeholder"),
+        }) as HTMLInputElement;
+
+        const msgEl = formContainer.createDiv("supsync-login-msg");
+
+        const btnRow = formContainer.createDiv("supsync-login-btn-row");
+
+        const signInBtn = btnRow.createEl("button", { text: t("login.btn.signIn") });
+        signInBtn.addEventListener("click", () => {
+            void (async () => {
+                const email = emailInput.value.trim();
+                const password = passInput.value;
+                if (!email || !password) {
+                    msgEl.textContent = t("login.error.fillFields");
+                    msgEl.className = "supsync-login-msg supsync-msg-error";
+                    return;
+                }
+                msgEl.textContent = t("login.waiting");
+                msgEl.className = "supsync-login-msg supsync-msg-info";
+                try {
+                    const data = await signIn(email, password);
+                    this.plugin.currentUserId = data.user.id;
+                    setCurrentUserId(data.user.id);
+                    this.plugin.onAuthSuccess(data.user.email);
+                    msgEl.textContent = t("login.success.signedIn");
+                    msgEl.className = "supsync-login-msg supsync-msg-success";
+                    window.setTimeout(() => { this.render(); }, 800);
+                } catch (err) {
+                    msgEl.textContent = err instanceof Error ? err.message : t("login.error.failed");
+                    msgEl.className = "supsync-login-msg supsync-msg-error";
+                }
+            })();
+        });
+
+        const registerBtn = btnRow.createEl("button", { text: t("login.btn.register") });
+        registerBtn.className = "supsync-toggle-btn";
+        registerBtn.addEventListener("click", () => {
+            void (async () => {
+                const email = emailInput.value.trim();
+                const password = passInput.value;
+                if (!email || !password) {
+                    msgEl.textContent = t("login.error.fillFields");
+                    msgEl.className = "supsync-login-msg supsync-msg-error";
+                    return;
+                }
+                msgEl.textContent = t("login.waiting");
+                msgEl.className = "supsync-login-msg supsync-msg-info";
+                try {
+                    const data = await signUp(email, password);
+                    if (data?.session) {
+                        this.plugin.currentUserId = data.user.id;
+                        setCurrentUserId(data.user.id);
+                        this.plugin.onAuthSuccess(data.user.email);
+                        msgEl.textContent = t("login.success.signedIn");
+                        msgEl.className = "supsync-login-msg supsync-msg-success";
+                        window.setTimeout(() => { this.render(); }, 800);
+                    } else {
+                        msgEl.textContent = t("login.success.signedIn");
+                        msgEl.className = "supsync-login-msg supsync-msg-success";
+                        window.setTimeout(() => { this.render(); }, 1500);
+                    }
+                } catch (err) {
+                    msgEl.textContent = err instanceof Error ? err.message : t("login.error.failed");
+                    msgEl.className = "supsync-login-msg supsync-msg-error";
+                }
+            })();
+        });
     }
 
     private renderExclusionsSection(containerEl: HTMLElement): void {

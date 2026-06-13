@@ -3,7 +3,10 @@ import type { SupSyncSettings } from "./types";
 
 let settings: SupSyncSettings;
 let accessToken = "";
+let refreshToken = "";
 let currentUserId = "";
+
+let persistTokens: ((access: string, refresh: string) => void) | null = null;
 
 export function setSupabaseSettings(s: SupSyncSettings) {
     settings = s;
@@ -17,12 +20,24 @@ export function getAccessToken(): string {
     return accessToken;
 }
 
+export function setRefreshToken(token: string) {
+    refreshToken = token;
+}
+
+export function getRefreshToken(): string {
+    return refreshToken;
+}
+
 export function setCurrentUserId(id: string): void {
     currentUserId = id;
 }
 
 export function getCurrentUserId(): string {
     return currentUserId;
+}
+
+export function setPersistCallback(cb: (access: string, refresh: string) => void): void {
+    persistTokens = cb;
 }
 
 function baseUrl(): string {
@@ -131,10 +146,16 @@ export function retryWithBackoff<T>(
 
 // --- Auth ---
 
+function saveTokens(access: string, refresh: string): void {
+    accessToken = access;
+    refreshToken = refresh;
+    if (persistTokens) persistTokens(access, refresh);
+}
+
 export async function signUp(
     email: string,
     password: string,
-): Promise<{ user: unknown; session: unknown } | null> {
+): Promise<{ user: { id: string; email: string }; session: { access_token: string; refresh_token: string } } | null> {
     const url = `${settings.supabaseUrl}/auth/v1/signup`;
     const req: RequestUrlParam = {
         url, method: "POST",
@@ -146,7 +167,14 @@ export async function signUp(
         const err = res.json as { msg?: string };
         throw new Error(err?.msg || `SignUp failed: ${res.status}`);
     }
-    return res.json as { user: unknown; session: unknown };
+    const data = res.json as {
+        user: { id: string; email: string };
+        session: { access_token: string; refresh_token: string } | null;
+    };
+    if (data.session) {
+        saveTokens(data.session.access_token, data.session.refresh_token);
+    }
+    return data as { user: { id: string; email: string }; session: { access_token: string; refresh_token: string } };
 }
 
 export async function signIn(
@@ -173,8 +201,27 @@ export async function signIn(
         refresh_token: string;
         user: { id: string; email: string };
     };
-    accessToken = data.access_token;
+    saveTokens(data.access_token, data.refresh_token);
     return data;
+}
+
+export async function refreshAccessToken(): Promise<boolean> {
+    if (!refreshToken || !settings) return false;
+    const url = `${settings.supabaseUrl}/auth/v1/token?grant_type=refresh_token`;
+    try {
+        const req: RequestUrlParam = {
+            url, method: "POST",
+            headers: { "Content-Type": "application/json", apikey: settings.supabaseAnonKey },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+        };
+        const res = await requestUrl(req);
+        if (res.status < 200 || res.status >= 300) return false;
+        const data = res.json as { access_token: string; refresh_token: string };
+        saveTokens(data.access_token, data.refresh_token);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export async function signOut(): Promise<void> {
@@ -188,7 +235,7 @@ export async function signOut(): Promise<void> {
         },
     };
     await requestUrl(req);
-    accessToken = "";
+    saveTokens("", "");
 }
 
 export async function getCurrentUser(): Promise<{ id: string; email: string } | null> {
@@ -203,7 +250,6 @@ export async function getCurrentUser(): Promise<{ id: string; email: string } | 
     };
     const res = await requestUrl(req);
     if (res.status < 200 || res.status >= 300) {
-        accessToken = "";
         return null;
     }
     return res.json as { id: string; email: string };

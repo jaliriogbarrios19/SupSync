@@ -30,6 +30,9 @@
   "cmd.openSettings": "Abrir configuración",
 
   "settings.heading.supabase": "Proyecto Supabase",
+  "settings.heading.account": "Cuenta",
+  "settings.auth.signedIn": "Sesión iniciada",
+  "settings.auth.signOut": "Cerrar sesión",
   "settings.url": "URL del proyecto",
   "settings.url.desc": "La URL de tu proyecto Supabase (ej: https://abcxyz.supabase.co)",
   "settings.url.placeholder": "https://tu-proyecto.supabase.co",

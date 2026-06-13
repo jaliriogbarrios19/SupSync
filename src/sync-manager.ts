@@ -7,7 +7,7 @@ import { matchGlob } from "./glob-match";
 import {
     upsertNote, softDeleteNote, renameNote,
 } from "./supabase-api";
-import { getAccessToken, setAccessToken } from "./supabase-client";
+import { getAccessToken, refreshAccessToken } from "./supabase-client";
 import {
     initBinarySync, isBinaryFile, pushBinaryFile,
 } from "./binary-sync";
@@ -42,10 +42,6 @@ export function initSyncManager(
 
 export function setVaultId(id: string): void {
     vaultId = id;
-}
-
-export function setAccessTokenForSync(token: string): void {
-    setAccessToken(token);
 }
 
 export function startPolling(): void {
@@ -154,7 +150,12 @@ function scheduleFlush(): void {
 
 export async function flushQueue(): Promise<void> {
     if (pendingQueue.length === 0) return;
-    if (!getAccessToken() || !vaultId) return;
+    if (!vaultId) return;
+
+    if (!getAccessToken()) {
+        const refreshed = await refreshAccessToken();
+        if (!refreshed) return;
+    }
 
     const batch = [...pendingQueue];
     pendingQueue = [];

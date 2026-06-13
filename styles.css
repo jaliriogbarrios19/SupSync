@@ -308,3 +308,53 @@
     font-size: 0.9em;
     margin-bottom: 8px;
 }
+
+/* Login in Settings */
+.supsync-login-settings {
+    margin-bottom: 16px;
+    padding: 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+}
+
+.supsync-login-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.supsync-login-row label {
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.supsync-login-row input {
+    padding: 6px 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+}
+
+.supsync-login-msg {
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.supsync-login-btn-row {
+    display: flex;
+    gap: 8px;
+}
+
+.supsync-msg-error {
+    color: var(--text-error);
+}
+
+.supsync-msg-success {
+    color: var(--text-success);
+}
+
+.supsync-msg-info {
+    color: var(--text-muted);
+}
