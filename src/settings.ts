@@ -18,7 +18,9 @@ export class SupSyncSettingTab extends PluginSettingTab {
     }
 
     display(): void {
-        void this.render();
+        void this.render().catch((err) => {
+            console.error("[SupSync] Settings render failed:", err);
+        });
     }
 
     private async render(): Promise<void> {
@@ -137,10 +139,14 @@ export class SupSyncSettingTab extends PluginSettingTab {
     }
 
     private async checkAuth(): Promise<void> {
-        if (getAccessToken()) {
-            const user = await getCurrentUser();
-            this.userEmail = user?.email || "";
-        } else {
+        try {
+            if (getAccessToken()) {
+                const user = await getCurrentUser();
+                this.userEmail = user?.email || "";
+            } else {
+                this.userEmail = "";
+            }
+        } catch {
             this.userEmail = "";
         }
     }

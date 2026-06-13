@@ -237,6 +237,15 @@ export default class SupSyncPlugin extends Plugin {
 
     onAuthSuccess(email: string): void {
         void (async () => {
+            if (!this.vaultId) {
+                const config = await this.loadVaultConfig();
+                if (config) {
+                    this.vaultId = config.vaultId;
+                    this.vaultName = config.vaultName;
+                    setVaultId(this.vaultId);
+                }
+            }
+
             if (this.vaultId) {
                 initSyncManager(
                     this.app, this.settings,
