@@ -7,6 +7,7 @@ import {
 import { getAccessToken } from "./supabase-client";
 import { pullBinaryFiles } from "./binary-sync";
 import { ConflictModal } from "./conflict-modal";
+import { matchGlob } from "./glob-match";
 import { t } from "./i18n";
 
 interface SyncPullDeps {
@@ -141,7 +142,7 @@ async function checkStorageWarning(
 function isPathExcluded(path: string, excludedPaths: string[], configDir: string): boolean {
     if (path.startsWith(configDir + "/") || path === configDir) return true;
     return excludedPaths.some(
-        (p) => path.startsWith(p) || path.includes("/" + p),
+        (p) => matchGlob(p, path),
     );
 }
 

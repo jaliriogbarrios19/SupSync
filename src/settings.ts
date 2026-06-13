@@ -2,6 +2,7 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 import type SupSyncPlugin from "./main";
 import type { SupSyncSettings } from "./types";
 import { t } from "./i18n";
+import { ExclusionPickerModal } from "./exclusion-picker-modal";
 
 export class SupSyncSettingTab extends PluginSettingTab {
     plugin: SupSyncPlugin;
@@ -100,20 +101,7 @@ export class SupSyncSettingTab extends PluginSettingTab {
             .setName(t("settings.heading.excluded"))
             .setHeading();
 
-        new Setting(containerEl)
-            .setName(t("settings.excludedPaths"))
-            .setDesc(t("settings.excludedPaths.desc"))
-            .addTextArea((text) => {
-                text.setValue(this.plugin.settings.excludedPaths.join(", "))
-                    .setPlaceholder(t("settings.excludedPaths.placeholder"))
-                    .onChange(async (value) => {
-                        this.plugin.settings.excludedPaths = value
-                            .split(",")
-                            .map((s: string) => s.trim())
-                            .filter((s: string) => s.length > 0);
-                        await this.plugin.saveSettings();
-                    });
-            });
+        this.renderExclusionsSection(containerEl);
 
         new Setting(containerEl)
             .setName(t("settings.heading.vault"))
@@ -138,5 +126,71 @@ export class SupSyncSettingTab extends PluginSettingTab {
                     })();
                 }),
             );
+    }
+
+    private renderExclusionsSection(containerEl: HTMLElement): void {
+        const desc = containerEl.createDiv();
+        desc.createEl("p", {
+            text: t("settings.excludedPaths.desc"),
+            cls: "setting-item-description",
+        });
+
+        const tagsContainer = containerEl.createDiv("supsync-exclusion-tags");
+        this.renderExclusionTags(tagsContainer);
+
+        const browseSetting = new Setting(containerEl);
+        browseSetting.addButton((btn) =>
+            btn.setButtonText(t("settings.excludedPaths.browse"))
+                .setCta()
+                .onClick(() => {
+                    new ExclusionPickerModal(
+                        this.app,
+                        this.plugin.settings.excludedPaths,
+                        async (selected) => {
+                            const merged = new Set([
+                                ...this.plugin.settings.excludedPaths,
+                                ...selected,
+                            ]);
+                            this.plugin.settings.excludedPaths = [...merged];
+                            await this.plugin.saveSettings();
+                            this.render();
+                        },
+                    ).open();
+                }),
+        );
+        browseSetting.addButton((btn) =>
+            btn.setButtonText(t("settings.excludedPaths.clearAll"))
+                .onClick(async () => {
+                    this.plugin.settings.excludedPaths = [];
+                    await this.plugin.saveSettings();
+                    this.render();
+                }),
+        );
+    }
+
+    private renderExclusionTags(container: HTMLElement): void {
+        container.empty();
+        const paths = this.plugin.settings.excludedPaths;
+
+        if (paths.length === 0) {
+            container.createEl("p", {
+                text: t("settings.excludedPaths.empty"),
+                cls: "supsync-exclusion-empty",
+            });
+            return;
+        }
+
+        for (const path of paths) {
+            const tag = container.createSpan("supsync-exclusion-tag");
+            tag.createSpan({ text: path });
+            const removeBtn = tag.createSpan("supsync-exclusion-tag-remove");
+            removeBtn.textContent = "×";
+            removeBtn.addEventListener("click", async () => {
+                this.plugin.settings.excludedPaths =
+                    this.plugin.settings.excludedPaths.filter((p) => p !== path);
+                await this.plugin.saveSettings();
+                this.renderExclusionTags(container);
+            });
+        }
     }
 }

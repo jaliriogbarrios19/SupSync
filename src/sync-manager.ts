@@ -3,6 +3,7 @@ import type { SupSyncSettings, PendingChange } from "./types";
 import {
     DEBOUNCE_MS, SYNCABLE_ALL_EXTENSIONS,
 } from "./types";
+import { matchGlob } from "./glob-match";
 import {
     upsertNote, softDeleteNote, renameNote,
 } from "./supabase-api";
@@ -226,7 +227,7 @@ function isExcluded(path: string): boolean {
     const configDir = app.vault.configDir;
     if (path.startsWith(configDir + "/") || path === configDir) return true;
     return settings.excludedPaths.some(
-        (p) => path.startsWith(p) || path.includes("/" + p),
+        (p) => matchGlob(p, path),
     );
 }
 
