@@ -1,6 +1,6 @@
 {
   "name": "supsync",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "Multi-user vault sync via Supabase",
   "main": "main.js",
   "scripts": {
