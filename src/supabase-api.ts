@@ -1,6 +1,7 @@
 import type { SupabaseNote, SupabaseLock, VaultFile } from "./types";
 import {
     supabaseGet, supabasePost, supabasePatch, supabaseDelete, retryWithBackoff,
+    getCurrentUserId,
 } from "./supabase-client";
 
 // --- Vaults ---
@@ -26,7 +27,7 @@ export async function joinVault(vaultId: string): Promise<void> {
     await retryWithBackoff(() =>
         supabasePost("vault_members", {
             vault_id: vaultId,
-            user_id: "auth.uid()",
+            user_id: getCurrentUserId(),
         }),
     );
 }
