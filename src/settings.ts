@@ -18,7 +18,7 @@ export class SupSyncSettingTab extends PluginSettingTab {
     }
 
     display(): void {
-        this.render();
+        void this.render();
     }
 
     private async render(): Promise<void> {
@@ -162,7 +162,7 @@ export class SupSyncSettingTab extends PluginSettingTab {
                             this.plugin.currentUserId = "";
                             setCurrentUserId("");
                             new Notice(t("plugin.signedOut"));
-                            this.render();
+                            void this.render();
                         })();
                     }),
             );
@@ -176,14 +176,14 @@ export class SupSyncSettingTab extends PluginSettingTab {
         const emailInput = emailRow.createEl("input", {
             type: "email",
             placeholder: t("login.email.placeholder"),
-        }) as HTMLInputElement;
+        });
 
         const passRow = formContainer.createDiv("supsync-login-row");
         passRow.createEl("label", { text: t("login.password") });
         const passInput = passRow.createEl("input", {
             type: "password",
             placeholder: t("login.password.placeholder"),
-        }) as HTMLInputElement;
+        });
 
         const msgEl = formContainer.createDiv("supsync-login-msg");
 
@@ -208,7 +208,7 @@ export class SupSyncSettingTab extends PluginSettingTab {
                     this.plugin.onAuthSuccess(data.user.email);
                     msgEl.textContent = t("login.success.signedIn");
                     msgEl.className = "supsync-login-msg supsync-msg-success";
-                    window.setTimeout(() => { this.render(); }, 800);
+                    window.setTimeout(() => { void this.render(); }, 800);
                 } catch (err) {
                     msgEl.textContent = err instanceof Error ? err.message : t("login.error.failed");
                     msgEl.className = "supsync-login-msg supsync-msg-error";
@@ -237,11 +237,11 @@ export class SupSyncSettingTab extends PluginSettingTab {
                         this.plugin.onAuthSuccess(data.user.email);
                         msgEl.textContent = t("login.success.signedIn");
                         msgEl.className = "supsync-login-msg supsync-msg-success";
-                        window.setTimeout(() => { this.render(); }, 800);
+                        window.setTimeout(() => { void this.render(); }, 800);
                     } else {
                         msgEl.textContent = t("login.success.signedIn");
                         msgEl.className = "supsync-login-msg supsync-msg-success";
-                        window.setTimeout(() => { this.render(); }, 1500);
+                        window.setTimeout(() => { void this.render(); }, 1500);
                     }
                 } catch (err) {
                     msgEl.textContent = err instanceof Error ? err.message : t("login.error.failed");
@@ -269,24 +269,28 @@ export class SupSyncSettingTab extends PluginSettingTab {
                     new ExclusionPickerModal(
                         this.app,
                         this.plugin.settings.excludedPaths,
-                        async (selected) => {
-                            const merged = new Set([
-                                ...this.plugin.settings.excludedPaths,
-                                ...selected,
-                            ]);
-                            this.plugin.settings.excludedPaths = [...merged];
-                            await this.plugin.saveSettings();
-                            this.render();
+                        (selected) => {
+                            void (async () => {
+                                const merged = new Set([
+                                    ...this.plugin.settings.excludedPaths,
+                                    ...selected,
+                                ]);
+                                this.plugin.settings.excludedPaths = [...merged];
+                                await this.plugin.saveSettings();
+                                void this.render();
+                            })();
                         },
                     ).open();
                 }),
         );
         browseSetting.addButton((btn) =>
             btn.setButtonText(t("settings.excludedPaths.clearAll"))
-                .onClick(async () => {
-                    this.plugin.settings.excludedPaths = [];
-                    await this.plugin.saveSettings();
-                    this.render();
+                .onClick(() => {
+                    void (async () => {
+                        this.plugin.settings.excludedPaths = [];
+                        await this.plugin.saveSettings();
+                        void this.render();
+                    })();
                 }),
         );
     }
@@ -308,11 +312,13 @@ export class SupSyncSettingTab extends PluginSettingTab {
             tag.createSpan({ text: path });
             const removeBtn = tag.createSpan("supsync-exclusion-tag-remove");
             removeBtn.textContent = "×";
-            removeBtn.addEventListener("click", async () => {
-                this.plugin.settings.excludedPaths =
-                    this.plugin.settings.excludedPaths.filter((p) => p !== path);
-                await this.plugin.saveSettings();
-                this.renderExclusionTags(container);
+            removeBtn.addEventListener("click", () => {
+                void (async () => {
+                    this.plugin.settings.excludedPaths =
+                        this.plugin.settings.excludedPaths.filter((p) => p !== path);
+                    await this.plugin.saveSettings();
+                    this.renderExclusionTags(container);
+                })();
             });
         }
     }

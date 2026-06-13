@@ -1,7 +1,7 @@
 {
   "id": "supsync",
   "name": "SupSync",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "minAppVersion": "1.6.6",
   "description": "Sync vaults across multiple users via Supabase with real-time collaboration and locking.",
   "author": "Jesús García",

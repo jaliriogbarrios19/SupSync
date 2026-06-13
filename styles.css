@@ -237,6 +237,7 @@
 
 .supsync-exclusion-item {
     padding: 2px 8px;
+    padding-left: calc(var(--depth, 0) * 20px + 8px);
 }
 
 .supsync-exclusion-item:hover {
@@ -268,6 +269,10 @@
 
 .supsync-exclusion-children {
     margin-left: 4px;
+}
+
+.supsync-exclusion-hidden {
+    display: none;
 }
 
 /* Exclusion Tags */

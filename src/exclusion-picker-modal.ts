@@ -74,14 +74,14 @@ export class ExclusionPickerModal extends Modal {
 
     private renderFolderItem(folder: TFolder, container: HTMLElement, depth: number): void {
         const item = container.createDiv("supsync-exclusion-item");
-        item.style.paddingLeft = `${depth * 20}px`;
+        item.setCssProps({ "--depth": String(depth) });
 
         const header = item.createDiv("supsync-exclusion-item-header");
 
         const toggle = header.createSpan("supsync-exclusion-toggle");
         toggle.textContent = "▶";
 
-        const checkbox = header.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+        const checkbox = header.createEl("input", { type: "checkbox" });
         const folderPath = folder.path + "/";
         checkbox.checked = this.existingExclusions.includes(folderPath)
             || this.selectedPaths.has(folderPath);
@@ -93,7 +93,7 @@ export class ExclusionPickerModal extends Modal {
         label.textContent = folder.name + "/";
 
         const childContainer = container.createDiv("supsync-exclusion-children");
-        childContainer.style.display = "none";
+        childContainer.addClass("supsync-exclusion-hidden");
 
         let expanded = false;
         let loaded = false;
@@ -101,7 +101,7 @@ export class ExclusionPickerModal extends Modal {
         toggle.addEventListener("click", () => {
             expanded = !expanded;
             toggle.textContent = expanded ? "▼" : "▶";
-            childContainer.style.display = expanded ? "block" : "none";
+            childContainer.toggleClass("supsync-exclusion-hidden", !expanded);
 
             if (!loaded) {
                 this.renderFolder(folder, childContainer, depth + 1);
@@ -123,14 +123,14 @@ export class ExclusionPickerModal extends Modal {
         if (!SYNCABLE_ALL_EXTENSIONS.includes(ext)) return;
 
         const item = container.createDiv("supsync-exclusion-item");
-        item.style.paddingLeft = `${depth * 20}px`;
+        item.setCssProps({ "--depth": String(depth) });
 
         const header = item.createDiv("supsync-exclusion-item-header");
 
         const spacer = header.createSpan("supsync-exclusion-toggle");
         spacer.textContent = " ";
 
-        const checkbox = header.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+        const checkbox = header.createEl("input", { type: "checkbox" });
         checkbox.checked = this.existingExclusions.includes(file.path)
             || this.selectedPaths.has(file.path);
 
