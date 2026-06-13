@@ -161,6 +161,7 @@ export default class SupSyncPlugin extends Plugin {
 
     private async restoreSession(): Promise<void> {
         const config = await this.loadVaultConfig();
+
         if (!config) return;
 
         this.vaultId = config.vaultId;
@@ -172,6 +173,7 @@ export default class SupSyncPlugin extends Plugin {
         }
 
         const user = await getCurrentUser();
+
         if (user) {
             this.currentUserId = user.id;
             setCurrentUserId(user.id);
@@ -209,6 +211,17 @@ export default class SupSyncPlugin extends Plugin {
         } catch {
             // No config yet
         }
+
+        try {
+            const exists = await this.app.vault.adapter.exists(SYNC_CONFIG_FILENAME);
+            if (exists) {
+                const content = await this.app.vault.adapter.read(SYNC_CONFIG_FILENAME);
+                return JSON.parse(content) as SyncConfigData;
+            }
+        } catch {
+            // adapter fallback failed
+        }
+
         return null;
     }
 
