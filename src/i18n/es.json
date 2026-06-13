@@ -74,7 +74,6 @@
   "settings.joinVault.created": "¡Vault creado!",
   "settings.joinVault.emptyError": "Ingresá un Vault ID.",
   "settings.joinVault.error": "No se pudo unir al vault. Verificá el ID.",
-  "settings.heading.vault": "Vault",
   "settings.setupWizard": "Asistente de setup",
   "settings.setupWizard.desc": "Guía paso a paso para conectar este vault a Supabase.",
   "settings.setupWizard.btn": "Abrir asistente",
