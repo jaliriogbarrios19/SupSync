@@ -173,6 +173,25 @@ export class SupSyncSettingTab extends PluginSettingTab {
                     }),
             );
 
+            if (this.plugin.vaultId) {
+                new Setting(containerEl)
+                    .setName(t("settings.heading.vault"))
+                    .setHeading();
+
+                const vaultInfo = new Setting(containerEl);
+                vaultInfo.setName(this.plugin.vaultName || t("settings.vault.unnamed"))
+                    .setDesc(t("settings.vault.id", { id: this.plugin.vaultId }));
+                vaultInfo.addButton((btn) =>
+                    btn.setButtonText(t("settings.vault.copyId"))
+                        .onClick(() => {
+                            navigator.clipboard.writeText(this.plugin.vaultId);
+                            new Notice(t("settings.vault.copied"));
+                        }),
+                );
+
+                return;
+            }
+
             if (!this.plugin.vaultId) {
                 new Setting(containerEl)
                     .setName(t("settings.heading.vaultSelect"))
