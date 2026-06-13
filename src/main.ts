@@ -10,7 +10,7 @@ import { JoinVaultModal } from "./join-vault-modal";
 import { LockManager } from "./lock-manager";
 import { RealtimeManager } from "./realtime-manager";
 import {
-    setSupabaseSettings, getAccessToken, getRefreshToken, setRefreshToken,
+    setSupabaseSettings, getAccessToken, getRefreshToken, setRefreshToken, setAccessToken,
     signOut, getCurrentUser, setCurrentUserId, setPersistCallback,
     refreshAccessToken,
 } from "./supabase-client";
@@ -40,10 +40,11 @@ export default class SupSyncPlugin extends Plugin {
         await this.loadSettings();
         initLocale();
         setSupabaseSettings(this.settings);
-        setPersistCallback((_access, refresh) => {
+        setPersistCallback((access, refresh) => {
             void (async () => {
                 const data: Record<string, unknown> = { ...this.settings };
                 if (refresh) data._refreshToken = refresh;
+                if (access) data._accessToken = access;
                 await this.saveData(data);
             })();
         });
@@ -110,9 +111,14 @@ export default class SupSyncPlugin extends Plugin {
         const data = await this.loadData() as Record<string, unknown> | null;
         const settingsData = data ? { ...data } : {};
         const storedRefresh = (settingsData._refreshToken as string) || "";
+        const storedAccess = (settingsData._accessToken as string) || "";
         delete settingsData._refreshToken;
+        delete settingsData._accessToken;
         this.settings = { ...DEFAULT_SETTINGS, ...(settingsData as Partial<SupSyncSettings>) };
 
+        if (storedAccess) {
+            setAccessToken(storedAccess);
+        }
         if (storedRefresh) {
             setRefreshToken(storedRefresh);
         }
@@ -133,6 +139,8 @@ export default class SupSyncPlugin extends Plugin {
         const dataToSave: Record<string, unknown> = { ...this.settings };
         const rt = getRefreshToken();
         if (rt) dataToSave._refreshToken = rt;
+        const at = getAccessToken();
+        if (at) dataToSave._accessToken = at;
         await this.saveData(dataToSave);
         setSupabaseSettings(this.settings);
 
@@ -236,8 +244,11 @@ export default class SupSyncPlugin extends Plugin {
             return;
         }
         if (!getAccessToken()) {
-            new Notice(t("plugin.signInFirst"));
-            return;
+            const refreshed = await refreshAccessToken();
+            if (!refreshed) {
+                new Notice(t("plugin.signInFirst"));
+                return;
+            }
         }
         clearSyncErrors();
 
