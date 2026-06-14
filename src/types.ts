@@ -5,6 +5,7 @@ export interface SupSyncSettings {
     conflictMode: "local-wins" | "remote-wins" | "ask";
     excludedPaths: string[];
     storageLimitMB: number;
+    maxFileSizeMB: number;
 }
 
 export const DEFAULT_SETTINGS: SupSyncSettings = {
@@ -14,6 +15,7 @@ export const DEFAULT_SETTINGS: SupSyncSettings = {
     conflictMode: "remote-wins",
     excludedPaths: [".git/", ".trash/", ".DS_Store", "Thumbs.db"],
     storageLimitMB: 1024,
+    maxFileSizeMB: 50,
 };
 
 export const SUPABASE_REALTIME_URL_SUFFIX = "/realtime/v1/websocket";

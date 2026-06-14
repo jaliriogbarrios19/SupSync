@@ -108,6 +108,20 @@ export class SupSyncSettingTab extends PluginSettingTab {
             );
 
         new Setting(containerEl)
+            .setName(t("settings.maxFileSize"))
+            .setDesc(t("settings.maxFileSize.desc"))
+            .addText((text) =>
+                text
+                    .setPlaceholder(t("settings.maxFileSize.placeholder"))
+                    .setValue(String(this.plugin.settings.maxFileSizeMB))
+                    .onChange(async (value) => {
+                        const n = parseInt(value, 10);
+                        this.plugin.settings.maxFileSizeMB = isNaN(n) ? 50 : Math.max(0, n);
+                        await this.plugin.saveSettings();
+                    }),
+            );
+
+        new Setting(containerEl)
             .setName(t("settings.heading.excluded"))
             .setHeading();
 
@@ -184,7 +198,7 @@ export class SupSyncSettingTab extends PluginSettingTab {
                 vaultInfo.addButton((btn) =>
                     btn.setButtonText(t("settings.vault.copyId"))
                         .onClick(() => {
-                            navigator.clipboard.writeText(this.plugin.vaultId);
+                            void navigator.clipboard.writeText(this.plugin.vaultId);
                             new Notice(t("settings.vault.copied"));
                         }),
                 );

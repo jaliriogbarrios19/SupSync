@@ -61,14 +61,26 @@ export function authHeaders(): Record<string, string> {
     return headers;
 }
 
+async function autoRefreshOn401(res: { status: number }): Promise<void> {
+    if (res.status === 401 && refreshToken) {
+        const refreshed = await refreshAccessToken();
+        if (!refreshed) throw new Error("Session expired. Please sign in again.");
+    }
+}
+
 export async function supabaseGet<T>(
     path: string,
     query?: Record<string, string>,
 ): Promise<T> {
     const params = new URLSearchParams(query || {});
     const url = `${baseUrl()}/${path}?${params.toString()}`;
-    const req: RequestUrlParam = { url, method: "GET", headers: authHeaders() };
-    const res = await requestUrl(req);
+    let req: RequestUrlParam = { url, method: "GET", headers: authHeaders() };
+    let res = await requestUrl(req);
+    if (res.status === 401) {
+        await autoRefreshOn401(res);
+        req = { url, method: "GET", headers: authHeaders() };
+        res = await requestUrl(req);
+    }
     if (res.status < 200 || res.status >= 300) {
         throw new Error(`Supabase GET ${path}: ${res.status}`);
     }
@@ -82,12 +94,24 @@ export async function supabasePost<T>(
 ): Promise<T | null> {
     const params = new URLSearchParams(query || {});
     const url = `${baseUrl()}/${path}?${params.toString()}`;
-    const req: RequestUrlParam = {
+    const prefer = params.has("on_conflict")
+        ? "resolution=merge-duplicates, return=representation"
+        : "return=representation";
+    let req: RequestUrlParam = {
         url, method: "POST",
-        headers: { ...authHeaders(), Prefer: "return=representation" },
+        headers: { ...authHeaders(), Prefer: prefer },
         body: JSON.stringify(body),
     };
-    const res = await requestUrl(req);
+    let res = await requestUrl(req);
+    if (res.status === 401) {
+        await autoRefreshOn401(res);
+        req = {
+            url, method: "POST",
+            headers: { ...authHeaders(), Prefer: prefer },
+            body: JSON.stringify(body),
+        };
+        res = await requestUrl(req);
+    }
     if (res.status < 200 || res.status >= 300) {
         throw new Error(`Supabase POST ${path}: ${res.status} ${res.text}`);
     }
@@ -104,12 +128,21 @@ export async function supabasePatch(
 ): Promise<void> {
     const params = new URLSearchParams(query || {});
     const url = `${baseUrl()}/${path}?${params.toString()}`;
-    const req: RequestUrlParam = {
+    let req: RequestUrlParam = {
         url, method: "PATCH",
         headers: { ...authHeaders(), Prefer: "return=minimal" },
         body: JSON.stringify(body),
     };
-    const res = await requestUrl(req);
+    let res = await requestUrl(req);
+    if (res.status === 401) {
+        await autoRefreshOn401(res);
+        req = {
+            url, method: "PATCH",
+            headers: { ...authHeaders(), Prefer: "return=minimal" },
+            body: JSON.stringify(body),
+        };
+        res = await requestUrl(req);
+    }
     if (res.status < 200 || res.status >= 300) {
         throw new Error(`Supabase PATCH ${path}: ${res.status}`);
     }
@@ -121,8 +154,13 @@ export async function supabaseDelete(
 ): Promise<void> {
     const params = new URLSearchParams(query || {});
     const url = `${baseUrl()}/${path}?${params.toString()}`;
-    const req: RequestUrlParam = { url, method: "DELETE", headers: authHeaders() };
-    const res = await requestUrl(req);
+    let req: RequestUrlParam = { url, method: "DELETE", headers: authHeaders() };
+    let res = await requestUrl(req);
+    if (res.status === 401) {
+        await autoRefreshOn401(res);
+        req = { url, method: "DELETE", headers: authHeaders() };
+        res = await requestUrl(req);
+    }
     if (res.status < 200 || res.status >= 300) {
         throw new Error(`Supabase DELETE ${path}: ${res.status}`);
     }
@@ -263,14 +301,13 @@ export async function uploadToStorage(
     data: ArrayBuffer,
     contentType: string,
 ): Promise<{ Key: string }> {
-    const encoded = encodeURIComponent(storagePath);
+    const encoded = storagePath.split("/").map(encodeURIComponent).join("/");
     const url = `${storageBaseUrl()}/object/${bucketName}/${encoded}`;
     const req: RequestUrlParam = {
-        url, method: "POST",
+        url, method: "PUT",
         headers: {
             ...authHeaders(),
             "Content-Type": contentType,
-            "x-upsert": "true",
         },
         body: data,
     };
@@ -285,7 +322,7 @@ export async function downloadFromStorage(
     bucketName: string,
     storagePath: string,
 ): Promise<ArrayBuffer> {
-    const encoded = encodeURIComponent(storagePath);
+    const encoded = storagePath.split("/").map(encodeURIComponent).join("/");
     const url = `${storageBaseUrl()}/object/${bucketName}/${encoded}`;
     const req: RequestUrlParam = { url, method: "GET", headers: authHeaders() };
     const res = await requestUrl(req);
@@ -299,7 +336,7 @@ export async function deleteFromStorage(
     bucketName: string,
     storagePath: string,
 ): Promise<void> {
-    const encoded = encodeURIComponent(storagePath);
+    const encoded = storagePath.split("/").map(encodeURIComponent).join("/");
     const url = `${storageBaseUrl()}/object/${bucketName}/${encoded}`;
     const req: RequestUrlParam = { url, method: "DELETE", headers: authHeaders() };
     const res = await requestUrl(req);

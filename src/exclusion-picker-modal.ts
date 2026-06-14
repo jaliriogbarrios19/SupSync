@@ -22,7 +22,7 @@ export class ExclusionPickerModal extends Modal {
         contentEl.empty();
         contentEl.addClass("supsync-exclusion-picker");
 
-        contentEl.createEl("h3", { text: t("exclusionPicker.title") });
+        contentEl.createDiv({ text: t("exclusionPicker.title"), cls: "supsync-modal-title" });
         contentEl.createEl("p", {
             text: t("exclusionPicker.description"),
             cls: "supsync-exclusion-picker-desc",

@@ -36,7 +36,7 @@ export function initSyncManager(
     vaultId = vault;
     onStatusChange = statusCb;
 
-    initBinarySync(app, vault);
+    initBinarySync(app, vault, pluginSettings);
     registerVaultEvents();
 }
 
@@ -70,6 +70,7 @@ export async function pullChanges(): Promise<void> {
 }
 
 export async function fullSync(onProgress?: ((c: number, t: number) => void)): Promise<void> {
+    await pushAllLocalFiles();
     await fullImpl({
         app, settings, vaultId, lastSyncAt, isRemoteChange: isRemote,
         onStatusChange, flushQueue, onProgress: onProgress || null,
@@ -230,6 +231,23 @@ function isExcluded(path: string): boolean {
     return settings.excludedPaths.some(
         (p) => matchGlob(p, path),
     );
+}
+
+export async function pushAllLocalFiles(): Promise<void> {
+    const vault = app.vault;
+    const files = vault.getFiles();
+    for (const file of files) {
+        if (!isSyncableFile(file.path)) continue;
+        if (isExcluded(file.path)) continue;
+        if (pendingQueue.some((c) => c.path === file.path)) continue;
+        pendingQueue.push({
+            path: file.path,
+            type: "create",
+            isRemote: false,
+            timestamp: Date.now(),
+        });
+    }
+    setPendingCount(pendingQueue.length);
 }
 
 // --- Cleanup ---

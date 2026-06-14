@@ -45,7 +45,7 @@ export class DashboardView extends ItemView {
         contentEl.addClass("supsync-dashboard");
 
         const header = contentEl.createDiv({ cls: "supsync-dash-header" });
-        header.createEl("h3", { text: t("dashboard.title") });
+        header.createSpan({ text: t("dashboard.title"), cls: "supsync-dash-title" });
 
         if (this.getVaultName()) {
             const info = contentEl.createDiv({ cls: "supsync-dash-info" });

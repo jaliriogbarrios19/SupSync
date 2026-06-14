@@ -220,6 +220,12 @@
 }
 
 /* Exclusion Picker Modal */
+.supsync-modal-title {
+    font-size: 1.3em;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
 .supsync-exclusion-picker-desc {
     color: var(--text-muted);
     margin-bottom: 12px;
@@ -362,4 +368,10 @@
 
 .supsync-msg-info {
     color: var(--text-muted);
+}
+
+/* Dashboard */
+.supsync-dash-title {
+    font-size: 1.3em;
+    font-weight: 600;
 }

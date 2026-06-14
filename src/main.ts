@@ -410,6 +410,16 @@ export default class SupSyncPlugin extends Plugin {
             new Notice(t("plugin.signInFirst"));
             return;
         }
+        if (!this.currentUserId) {
+            const user = await getCurrentUser();
+            if (user) {
+                this.currentUserId = user.id;
+                setCurrentUserId(user.id);
+            } else {
+                new Notice(t("plugin.signInFirst"));
+                return;
+            }
+        }
         const vaultName = this.app.vault.getName();
         try {
             const vault = await createVault(vaultName);
@@ -427,6 +437,15 @@ export default class SupSyncPlugin extends Plugin {
     private async joinVaultImpl(vaultId: string): Promise<void> {
         if (!getAccessToken()) {
             throw new Error(t("plugin.signInFirst"));
+        }
+        if (!this.currentUserId) {
+            const user = await getCurrentUser();
+            if (user) {
+                this.currentUserId = user.id;
+                setCurrentUserId(user.id);
+            } else {
+                throw new Error(t("plugin.signInFirst"));
+            }
         }
         const vault = await getVault(vaultId);
         if (!vault) throw new Error(t("join.error.notFound"));

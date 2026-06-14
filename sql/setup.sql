@@ -99,8 +99,9 @@ $$;
 -- vaults
 ALTER TABLE vaults ENABLE ROW LEVEL SECURITY;
 
+-- Any authenticated user can read vaults (needed for joinVault flow)
 CREATE POLICY "vaults_select" ON vaults
-    FOR SELECT USING (is_vault_member(id));
+    FOR SELECT USING (auth.uid() IS NOT NULL);
 
 CREATE POLICY "vaults_insert" ON vaults
     FOR INSERT WITH CHECK (true);
@@ -119,10 +120,10 @@ CREATE POLICY "vaults_update" ON vaults
 ALTER TABLE vault_members ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "members_select" ON vault_members
-    FOR SELECT USING (is_vault_member(vault_id));
+    FOR SELECT USING (is_vault_member(vault_id) OR user_id = auth.uid());
 
 CREATE POLICY "members_insert_self" ON vault_members
-    FOR INSERT WITH CHECK (user_id = supsync_uid());
+    FOR INSERT WITH CHECK (user_id = auth.uid());
 
 CREATE POLICY "members_delete_admin" ON vault_members
     FOR DELETE USING (

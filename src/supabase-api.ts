@@ -24,12 +24,18 @@ export async function getVault(vaultId: string): Promise<{ id: string; name: str
 }
 
 export async function joinVault(vaultId: string): Promise<void> {
-    await retryWithBackoff(() =>
-        supabasePost("vault_members", {
-            vault_id: vaultId,
-            user_id: getCurrentUserId(),
-        }),
-    );
+    try {
+        await retryWithBackoff(() =>
+            supabasePost("vault_members", {
+                vault_id: vaultId,
+                user_id: getCurrentUserId(),
+            }),
+        );
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : "";
+        if (msg.includes("409")) return;
+        throw err;
+    }
 }
 
 export async function getVaultMembers(vaultId: string): Promise<
