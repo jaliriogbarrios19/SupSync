@@ -29,7 +29,7 @@ function isExcluded(path: string): boolean {
 }
 
 function sanitizeStoragePath(path: string): string {
-    return path.replace(/[^\x00-\x7F]/g, (ch) => {
+    return path.replace(/[^\p{ASCII}]/gu, (ch) => {
         const code = ch.charCodeAt(0);
         return code.toString(16).padStart(4, '0');
     });

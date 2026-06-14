@@ -1,7 +1,7 @@
-# SupSync — Session Summary (2026-06-12/13)
+# SupSync — Session Summary (2026-06-14)
 
 ## Project
-SupSync v0.6.2 — Obsidian plugin for multi-user vault sync via Supabase with real-time locking.
+SupSync v0.7.0 — Obsidian plugin for multi-user vault sync via Supabase with real-time locking.
 GitHub: https://github.com/jaliriogbarrios19/SupSync
 
 ## Supabase Config
@@ -32,16 +32,37 @@ GitHub: https://github.com/jaliriogbarrios19/SupSync
 5. **onAuthSuccess vault** (v0.5.5): didn't load vault config if user signed in first
 6. **Obsidian bot warnings** (v0.5.4): CSS, type assertions, void promises
 
+## What was built this session (v0.7.0)
+
+### Features
+1. **maxFileSizeMB setting** (v0.7.0): configurable file size limit, default 50MB, 0 = no limit
+2. **Binary exclusion support**: pull now respects excludedPaths (previously only push did)
+3. **fullSync initial scan**: scans all local files and pushes them on first sync
+4. **CI release workflow**: `.github/workflows/release.yml` — auto-builds and releases on tag push
+
+### Bugfixes
+1. **RLS vaults_select**: changed from `is_vault_member(id)` to `auth.uid() IS NOT NULL` — was blocking joinVault
+2. **RLS members_insert_self**: changed from `supsync_uid()` to `auth.uid()` — supsync_uid() fails in RLS context
+3. **RLS members_select**: added `OR user_id = auth.uid()` — users couldn't see own membership
+4. **joinVault 409 Conflict**: now handles "already a member" gracefully instead of throwing
+5. **Storage encoding**: `encodeURIComponent` was encoding `/` in paths — now encodes per-segment
+6. **Unicode in storage paths**: sanitized to hex codes to avoid 400 errors from Supabase Storage
+7. **Binary parent folders**: `ensureParentFolders()` creates directories before writing files
+8. **Storage upload method**: changed from POST to PUT for proper upsert
+9. **upsert Prefer header**: added `resolution=merge-duplicates` for PostgREST upserts
+10. **Review compliance**: replaced `createEl("h3")` with CSS classes
+
 ## Known Issues (for next session)
-1. **Mobile "request failed" when joining vault** — still happening, root cause unknown. `joinVault()` call in settings throws an error that reaches the catch handler. The Supabase API calls may be failing due to network/auth issues on mobile.
-2. **_refreshToken truncated** — sometimes shows as `"43kc46dyui4s"` (short string) instead of a full JWT. Maybe `saveTokens` callback is being called before signIn completes, or the `persistTokens` callback writes partial data.
-3. Mobile login section occasionally doesn't render — may be timing issue with `checkAuth()`.
-4. No notes in Supabase after "sync complete" on laptop—was RLS issue (fixed in v0.5.6), needs re-testing.
+1. **Mobile "request failed" when joining vault** — still happening, root cause unknown.
+2. **_refreshToken truncated** — sometimes shows as short string instead of full JWT.
+3. **Jesús vault uses old plugin ID** `obsidian-sup-sync` — should migrate to `supsync`.
+4. **ERR_CONNECTION_RESET on large WAV files** — transient network issue, retry helps but files >50MB are skipped.
 
 ## Dev Workflow
 - Project: `D:\Obsidian Files\Projects\SupSync`
-- Vault: `D:\Obsidian Files\Jesús`
-- Build: `npm run build` → copies to vault with `Copy-Item main.js, manifest.json, styles.css`
+- Vaults: Jesús (`D:\Obsidian Files\Jesús`) and pruebas (`D:\Obsidian pruebas`)
+- Build: `npm run build` → copies to vaults with `Copy-Item`
 - Release: bump manifest.json + versions.json + package.json → `git tag 0.x.y` → CI creates release
 - Tags: no `v` prefix (Obsidian requirement)
 - Assets: `main.js`, `manifest.json`, `styles.css` only
+- CI: `.github/workflows/release.yml` auto-builds on tag push
