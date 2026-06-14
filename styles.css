@@ -446,3 +446,21 @@
     background: rgba(var(--color-blue-rgb), 0.2);
     color: var(--text-accent);
 }
+
+/* More about our work link */
+.supsync-more-work {
+    margin-top: 24px;
+    padding: 12px;
+    text-align: center;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.supsync-more-work a {
+    color: var(--text-accent);
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+.supsync-more-work a:hover {
+    text-decoration: underline;
+}

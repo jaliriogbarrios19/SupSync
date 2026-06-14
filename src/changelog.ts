@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
     {
+        version: "0.7.3",
+        date: "2026-06-14",
+        changes: [
+            { type: "improvement", text: "Updated spob URL to spob.fly.dev" },
+            { type: "feature", text: "Added 'More about our work' link in settings" },
+        ],
+    },
+    {
         version: "0.7.2",
         date: "2026-06-14",
         changes: [
