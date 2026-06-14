@@ -141,41 +141,14 @@ ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "notes_select" ON notes
     FOR SELECT USING (is_vault_member(vault_id));
 
-CREATE POLICY "notes_insert_with_lock" ON notes
-    FOR INSERT WITH CHECK (
-        is_vault_member(vault_id)
-        AND EXISTS (
-            SELECT 1 FROM locks
-            WHERE vault_id = notes.vault_id
-            AND path = notes.path
-            AND user_id = supsync_uid()
-            AND expires_at > now()
-        )
-    );
+CREATE POLICY "notes_insert_member" ON notes
+    FOR INSERT WITH CHECK (is_vault_member(vault_id));
 
-CREATE POLICY "notes_update_with_lock" ON notes
-    FOR UPDATE USING (is_vault_member(vault_id))
-    WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM locks
-            WHERE vault_id = notes.vault_id
-            AND path = notes.path
-            AND user_id = supsync_uid()
-            AND expires_at > now()
-        )
-    );
+CREATE POLICY "notes_update_member" ON notes
+    FOR UPDATE USING (is_vault_member(vault_id));
 
-CREATE POLICY "notes_delete_with_lock" ON notes
-    FOR DELETE USING (
-        is_vault_member(vault_id)
-        AND EXISTS (
-            SELECT 1 FROM locks
-            WHERE vault_id = notes.vault_id
-            AND path = notes.path
-            AND user_id = supsync_uid()
-            AND expires_at > now()
-        )
-    );
+CREATE POLICY "notes_delete_member" ON notes
+    FOR DELETE USING (is_vault_member(vault_id));
 
 -- locks
 ALTER TABLE locks ENABLE ROW LEVEL SECURITY;

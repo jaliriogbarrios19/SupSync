@@ -6,6 +6,7 @@ export interface SupSyncSettings {
     excludedPaths: string[];
     storageLimitMB: number;
     maxFileSizeMB: number;
+    lastSeenVersion: string;
 }
 
 export const DEFAULT_SETTINGS: SupSyncSettings = {
@@ -16,6 +17,7 @@ export const DEFAULT_SETTINGS: SupSyncSettings = {
     excludedPaths: [".git/", ".trash/", ".DS_Store", "Thumbs.db"],
     storageLimitMB: 1024,
     maxFileSizeMB: 50,
+    lastSeenVersion: "",
 };
 
 export const SUPABASE_REALTIME_URL_SUFFIX = "/realtime/v1/websocket";

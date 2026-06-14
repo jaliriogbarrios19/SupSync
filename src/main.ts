@@ -7,6 +7,7 @@ import { SupSyncSettingTab } from "./settings";
 import { LoginModal } from "./login-modal";
 import { OnboardModal } from "./onboard-modal";
 import { JoinVaultModal } from "./join-vault-modal";
+import { WhatsNewModal } from "./whats-new-modal";
 import { LockManager } from "./lock-manager";
 import { RealtimeManager } from "./realtime-manager";
 import {
@@ -94,6 +95,7 @@ export default class SupSyncPlugin extends Plugin {
         });
 
         await this.restoreSession();
+        this.checkWhatsNew();
     }
 
     onunload(): void {
@@ -185,6 +187,19 @@ export default class SupSyncPlugin extends Plugin {
             startPolling();
             realtimeManager.connect(this.vaultId);
             new Notice(t("plugin.connected", { email: user.email, vault: this.vaultName }));
+        }
+    }
+
+    private checkWhatsNew(): void {
+        const currentVersion = this.manifest.version;
+        const lastSeen = this.settings.lastSeenVersion;
+
+        if (lastSeen !== currentVersion) {
+            window.setTimeout(() => {
+                new WhatsNewModal(this.app, lastSeen).open();
+                this.settings.lastSeenVersion = currentVersion;
+                void this.saveSettings();
+            }, 1000);
         }
     }
 

@@ -202,5 +202,12 @@
   "onboard.step8.li1": "Close the note",
   "onboard.step8.li2": "Stop typing for 2 minutes",
   "onboard.step8.li3": "Switch to a different note",
-  "onboard.step8.p4": "For reading-only, no lock is needed. Anyone can read any note at any time."
+  "onboard.step8.p4": "For reading-only, no lock is needed. Anyone can read any note at any time.",
+
+"whatsNew.title": "What's New in SupSync",
+"whatsNew.subtitle": "Version {version}",
+"whatsNew.close": "Got it",
+"whatsNew.type.feature": "New",
+"whatsNew.type.fix": "Fix",
+"whatsNew.type.improvement": "Improvement"
 }

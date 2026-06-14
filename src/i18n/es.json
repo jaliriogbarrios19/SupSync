@@ -177,7 +177,7 @@
   "onboard.step5.p5": "Ejecutá el comando 'SupSync: Setup vault' desde la paleta de comandos.",
 
   "onboard.step6.title": "Paso 5: Crear o unirse a un vault",
-  "onboard.step6.p1": "Si es la PRERA vez que configurás este vault:",
+  "onboard.step6.p1": "Si es la PRIMERA vez que configurás este vault:",
   "onboard.step6.p2": "Usá el comando 'SupSync: Create shared vault' para registrar este vault en Supabase como admin.",
   "onboard.step6.p3": "Si te estás UNIENDO a un vault existente:",
   "onboard.step6.p4": "Usá el comando 'SupSync: Join vault' e ingresá el vault ID que te compartió tu admin.",
@@ -202,5 +202,12 @@
   "onboard.step8.li1": "Cerrás la nota",
   "onboard.step8.li2": "Dejás de escribir por 2 minutos",
   "onboard.step8.li3": "Cambiás a otra nota",
-  "onboard.step8.p4": "Para solo lectura, no se necesita lock. Cualquiera puede leer cualquier nota en cualquier momento."
+  "onboard.step8.p4": "Para solo lectura, no se necesita lock. Cualquiera puede leer cualquier nota en cualquier momento.",
+
+"whatsNew.title": "Novedades de SupSync",
+"whatsNew.subtitle": "Versión {version}",
+"whatsNew.close": "Entendido",
+"whatsNew.type.feature": "Nuevo",
+"whatsNew.type.fix": "Fix",
+"whatsNew.type.improvement": "Mejora"
 }

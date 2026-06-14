@@ -375,3 +375,74 @@
     font-size: 1.3em;
     font-weight: 600;
 }
+
+/* What's New Modal */
+.supsync-whats-new {
+    max-width: 500px;
+}
+
+.supsync-whats-new-subtitle {
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+.supsync-whats-new-version {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.supsync-whats-new-version:last-of-type {
+    border-bottom: none;
+}
+
+.supsync-whats-new-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.supsync-whats-new-version-tag {
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+.supsync-whats-new-date {
+    color: var(--text-muted);
+    font-size: 0.85em;
+}
+
+.supsync-whats-new ul {
+    padding-left: 20px;
+    margin: 0;
+}
+
+.supsync-whats-new li {
+    margin: 4px 0;
+    font-size: 0.9em;
+}
+
+.supsync-whats-new-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.75em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.supsync-badge-feature {
+    background: rgba(var(--color-green-rgb), 0.2);
+    color: var(--text-success);
+}
+
+.supsync-badge-fix {
+    background: rgba(var(--color-orange-rgb), 0.2);
+    color: var(--text-warning);
+}
+
+.supsync-badge-improvement {
+    background: rgba(var(--color-blue-rgb), 0.2);
+    color: var(--text-accent);
+}
