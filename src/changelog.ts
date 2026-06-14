@@ -9,6 +9,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
     {
+        version: "0.7.4",
+        date: "2026-06-14",
+        changes: [
+            { type: "fix", text: "Fixed session not persisting across Obsidian restarts — auto refresh expired tokens" },
+        ],
+    },
+    {
         version: "0.7.3",
         date: "2026-06-14",
         changes: [

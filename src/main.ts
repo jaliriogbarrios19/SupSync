@@ -174,7 +174,14 @@ export default class SupSyncPlugin extends Plugin {
             await refreshAccessToken();
         }
 
-        const user = await getCurrentUser();
+        let user = await getCurrentUser();
+
+        if (!user && getRefreshToken()) {
+            const refreshed = await refreshAccessToken();
+            if (refreshed) {
+                user = await getCurrentUser();
+            }
+        }
 
         if (user) {
             this.currentUserId = user.id;
