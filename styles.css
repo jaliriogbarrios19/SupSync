@@ -381,6 +381,12 @@
     max-width: 500px;
 }
 
+.supsync-whats-new-title {
+    font-size: 1.4em;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
 .supsync-whats-new-subtitle {
     color: var(--text-muted);
     margin-bottom: 16px;

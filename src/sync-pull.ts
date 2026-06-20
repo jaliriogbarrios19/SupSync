@@ -41,6 +41,7 @@ export async function pullChanges(deps: SyncPullDeps): Promise<void> {
             if (isPathExcluded(note.path, settings.excludedPaths, app.vault.configDir)) continue;
             if (onProgress) onProgress(i + 1, total);
 
+            try {
             isRemoteChange.value = true;
             const existing = vault.getAbstractFileByPath(note.path);
 
@@ -76,17 +77,20 @@ export async function pullChanges(deps: SyncPullDeps): Promise<void> {
                         await vault.modify(existing, note.content);
                     }
                 }
-                } else {
-                    const folder = note.path.split("/").slice(0, -1).join("/");
-                    if (folder) {
-                        try {
-                            await vault.createFolder(normalizePath(folder));
-                        } catch {
-                            // ok
-                        }
+            } else {
+                const parts = note.path.split("/");
+                for (let j = 0; j < parts.length - 1; j++) {
+                    const folder = normalizePath(parts.slice(0, j + 1).join("/"));
+                    if (!vault.getAbstractFileByPath(folder)) {
+                        await vault.createFolder(folder);
                     }
-                    await vault.create(note.path, note.content);
                 }
+                await vault.create(note.path, note.content);
+            }
+
+            } catch (err) {
+                console.warn("[SupSync] Pull skip:", note.path, err);
+            }
 
             lastSyncAt.value = maxTimestamp(lastSyncAt.value, note.updated_at);
             isRemoteChange.value = false;

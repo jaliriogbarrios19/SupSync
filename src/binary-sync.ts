@@ -103,7 +103,11 @@ async function ensureParentFolders(path: string): Promise<void> {
         current = current ? `${current}/${parts[i]}` : parts[i];
         const exists = app.vault.getAbstractFileByPath(current);
         if (!exists) {
-            await app.vault.createFolder(current);
+            try {
+                await app.vault.createFolder(current);
+            } catch {
+                await app.vault.adapter.mkdir(current);
+            }
         }
     }
 }

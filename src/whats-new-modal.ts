@@ -22,7 +22,7 @@ export class WhatsNewModal extends Modal {
             return;
         }
 
-        contentEl.createEl("h2", { text: t("whatsNew.title") });
+        contentEl.createDiv({ text: t("whatsNew.title"), cls: "supsync-whats-new-title" });
         contentEl.createEl("p", {
             text: t("whatsNew.subtitle", { version: CHANGELOG[0].version }),
             cls: "supsync-whats-new-subtitle",
