@@ -47,6 +47,7 @@
   "settings.conflictMode.desc": "Qué pasa cuando la versión local y remota de una nota difieren.",
   "settings.conflictMode.local": "Gana la local",
   "settings.conflictMode.remote": "Gana la remota",
+  "settings.conflictMode.latest": "Gana el más reciente",
   "settings.conflictMode.ask": "Preguntar siempre",
   "settings.storageLimit": "Límite de almacenamiento (MB)",
   "settings.storageLimit.desc": "El umbral de advertencia es al 80% de este valor. Plan free: 1024 MB.",

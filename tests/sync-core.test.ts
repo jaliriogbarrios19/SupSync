@@ -34,6 +34,18 @@ describe("resolveConflict", () => {
     it("unknown mode behaves like newer-wins", () => {
         expect(resolveConflict(1000, dateIso(2000), "unknown")).toBe("accept-remote");
     });
+
+    it("latest-wins accepts remote when remote is newer", () => {
+        expect(resolveConflict(1000, dateIso(2000), "latest-wins")).toBe("accept-remote");
+    });
+
+    it("latest-wins keeps local when local is newer", () => {
+        expect(resolveConflict(2000, dateIso(1000), "latest-wins")).toBe("keep-local");
+    });
+
+    it("latest-wins prefers remote on same timestamp", () => {
+        expect(resolveConflict(1000, dateIso(1000), "latest-wins")).toBe("accept-remote");
+    });
 });
 
 describe("mimeFromExt", () => {

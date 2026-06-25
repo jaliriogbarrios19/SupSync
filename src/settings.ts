@@ -85,6 +85,7 @@ export class SupSyncSettingTab extends PluginSettingTab {
                 dropdown
                     .addOption("local-wins", t("settings.conflictMode.local"))
                     .addOption("remote-wins", t("settings.conflictMode.remote"))
+                    .addOption("latest-wins", t("settings.conflictMode.latest"))
                     .addOption("ask", t("settings.conflictMode.ask"))
                     .setValue(this.plugin.settings.conflictMode)
                     .onChange(async (value) => {

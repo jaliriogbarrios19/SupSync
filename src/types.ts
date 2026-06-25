@@ -2,7 +2,7 @@ export interface SupSyncSettings {
     supabaseUrl: string;
     supabaseAnonKey: string;
     syncInterval: number;
-    conflictMode: "local-wins" | "remote-wins" | "ask";
+    conflictMode: "local-wins" | "remote-wins" | "latest-wins" | "ask";
     excludedPaths: string[];
     storageLimitMB: number;
     maxFileSizeMB: number;
@@ -13,7 +13,7 @@ export const DEFAULT_SETTINGS: SupSyncSettings = {
     supabaseUrl: "",
     supabaseAnonKey: "",
     syncInterval: 0,
-    conflictMode: "remote-wins",
+    conflictMode: "latest-wins",
     excludedPaths: [".git/", ".trash/", ".DS_Store", "Thumbs.db"],
     storageLimitMB: 1024,
     maxFileSizeMB: 50,

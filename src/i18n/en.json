@@ -47,6 +47,7 @@
   "settings.conflictMode.desc": "What happens when local and remote versions of the same note differ.",
   "settings.conflictMode.local": "Local wins",
   "settings.conflictMode.remote": "Remote wins",
+  "settings.conflictMode.latest": "Latest wins",
   "settings.conflictMode.ask": "Ask every time",
   "settings.storageLimit": "Storage limit (MB)",
   "settings.storageLimit.desc": "Warning threshold is set at 80% of this value. Free tier: 1024 MB.",

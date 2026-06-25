@@ -177,6 +177,10 @@ export function resolveConflict(
 ): ConflictAction {
     if (mode === "remote-wins") return "accept-remote";
     if (mode === "local-wins") return "keep-local";
+    if (mode === "latest-wins") {
+        const remoteTime = new Date(remoteIsoTimestamp).getTime();
+        return remoteTime >= localMtime ? "accept-remote" : "keep-local";
+    }
     if (mode === "ask") return "ask";
     const remoteTime = new Date(remoteIsoTimestamp).getTime();
     return remoteTime > localMtime ? "accept-remote" : "keep-local";
