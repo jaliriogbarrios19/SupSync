@@ -176,6 +176,15 @@ export async function flushQueue(): Promise<void> {
 
     setPendingCount(pendingQueue.length);
     if (onStatusChange) onStatusChange("idle");
+
+    // Auto-pull remote changes after pushing (if auto-sync enabled)
+    if (settings.autoSyncEnabled) {
+        try {
+            await pullChanges();
+        } catch (err) {
+            console.warn("[SupSync] Auto-pull after push failed:", err);
+        }
+    }
 }
 
 export function dedupeChanges(changes: PendingChange[]): PendingChange[] {

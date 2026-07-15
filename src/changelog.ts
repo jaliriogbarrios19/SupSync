@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
     {
+        version: "0.7.7",
+        date: "2026-07-15",
+        changes: [
+            { type: "fix", text: "Auth tokens no longer get lost — expired refresh tokens are cleared from storage and session auto-recovers" },
+            { type: "feature", text: "Auto-sync: remote changes are pulled automatically after each local push" },
+            { type: "feature", text: "Periodic session health check (every 30 min) keeps tokens alive and auto-reconnects on expiry" },
+            { type: "improvement", text: "New 'Auto-sync' toggle in settings (enabled by default)" },
+        ],
+    },
+    {
         version: "0.7.4",
         date: "2026-06-14",
         changes: [

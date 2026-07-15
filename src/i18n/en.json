@@ -55,6 +55,8 @@
   "settings.maxFileSize": "Max file size (MB)",
   "settings.maxFileSize.desc": "Files larger than this won't be synced. Free plan: 50 MB max. Set 0 for no limit.",
   "settings.maxFileSize.placeholder": "50",
+  "settings.autoSync": "Auto-sync",
+  "settings.autoSync.desc": "Automatically sync when files change. When enabled, remote changes are also pulled after each local push.",
   "settings.heading.excluded": "Excluded paths",
   "settings.excludedPaths": "Paths to skip",
   "settings.excludedPaths.desc": "Files and folders excluded from sync. Supports glob patterns like folder/** and *.secret.md.",

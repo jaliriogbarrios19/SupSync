@@ -7,6 +7,7 @@ export interface SupSyncSettings {
     storageLimitMB: number;
     maxFileSizeMB: number;
     lastSeenVersion: string;
+    autoSyncEnabled: boolean;
 }
 
 export const DEFAULT_SETTINGS: SupSyncSettings = {
@@ -18,6 +19,7 @@ export const DEFAULT_SETTINGS: SupSyncSettings = {
     storageLimitMB: 1024,
     maxFileSizeMB: 50,
     lastSeenVersion: "",
+    autoSyncEnabled: true,
 };
 
 export const SUPABASE_REALTIME_URL_SUFFIX = "/realtime/v1/websocket";

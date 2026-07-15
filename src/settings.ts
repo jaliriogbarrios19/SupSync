@@ -123,6 +123,18 @@ export class SupSyncSettingTab extends PluginSettingTab {
             );
 
         new Setting(containerEl)
+            .setName(t("settings.autoSync"))
+            .setDesc(t("settings.autoSync.desc"))
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.autoSyncEnabled)
+                    .onChange(async (value) => {
+                        this.plugin.settings.autoSyncEnabled = value;
+                        await this.plugin.saveSettings();
+                    }),
+            );
+
+        new Setting(containerEl)
             .setName(t("settings.heading.excluded"))
             .setHeading();
 

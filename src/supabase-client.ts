@@ -253,13 +253,23 @@ export async function refreshAccessToken(): Promise<boolean> {
             body: JSON.stringify({ refresh_token: refreshToken }),
         };
         const res = await requestUrl(req);
-        if (res.status < 200 || res.status >= 300) return false;
+        if (res.status < 200 || res.status >= 300) {
+            clearStoredTokens();
+            return false;
+        }
         const data = res.json as { access_token: string; refresh_token: string };
         saveTokens(data.access_token, data.refresh_token);
         return true;
     } catch {
+        clearStoredTokens();
         return false;
     }
+}
+
+function clearStoredTokens(): void {
+    accessToken = "";
+    refreshToken = "";
+    if (persistTokens) persistTokens("", "");
 }
 
 export async function signOut(): Promise<void> {

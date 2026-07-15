@@ -36,6 +36,7 @@ export default class SupSyncPlugin extends Plugin {
     vaultId = "";
     vaultName = "";
     currentUserId = "";
+    private sessionCheckTimer: number | null = null;
 
     async onload(): Promise<void> {
         await this.loadSettings();
@@ -95,11 +96,16 @@ export default class SupSyncPlugin extends Plugin {
         });
 
         await this.restoreSession();
+        this.startSessionCheck();
         this.checkWhatsNew();
     }
 
     onunload(): void {
         void (async () => {
+            if (this.sessionCheckTimer !== null) {
+                window.clearInterval(this.sessionCheckTimer);
+                this.sessionCheckTimer = null;
+            }
             stopPolling();
             cleanupSync();
             await lockManager.releaseAll();
@@ -208,6 +214,46 @@ export default class SupSyncPlugin extends Plugin {
                 void this.saveSettings();
             }, 1000);
         }
+    }
+
+    private startSessionCheck(): void {
+        // Check session health every 30 minutes to keep tokens alive
+        const CHECK_INTERVAL_MS = 30 * 60 * 1000;
+        this.sessionCheckTimer = window.setInterval(() => {
+            void (async () => {
+                if (!getRefreshToken()) return;
+                const user = await getCurrentUser();
+                if (!user) {
+                    const refreshed = await refreshAccessToken();
+                    if (!refreshed) return;
+                    const reconnected = await getCurrentUser();
+                    if (reconnected) {
+                        this.currentUserId = reconnected.id;
+                        setCurrentUserId(reconnected.id);
+                        if (!this.vaultId) {
+                            const config = await this.loadVaultConfig();
+                            if (config) {
+                                this.vaultId = config.vaultId;
+                                this.vaultName = config.vaultName;
+                                setVaultId(this.vaultId);
+                            }
+                        }
+                        if (this.vaultId) {
+                            initSyncManager(
+                                this.app, this.settings,
+                                this.currentUserId, this.vaultId,
+                                (s) => { setSyncState(s as "idle" | "pushing" | "pulling" | "error"); },
+                            );
+                            startPolling();
+                            realtimeManager.connect(this.vaultId);
+                        }
+                    }
+                } else {
+                    // Session is alive — proactively refresh to extend lifetime
+                    await refreshAccessToken();
+                }
+            })();
+        }, CHECK_INTERVAL_MS);
     }
 
     // --- Vault config ---
