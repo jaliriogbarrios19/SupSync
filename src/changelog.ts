@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
     {
+        version: "0.7.8",
+        date: "2026-07-22",
+        changes: [
+            { type: "fix", text: "Login no longer lost on temporary network failures — refresh token persists across restarts" },
+            { type: "fix", text: "Session restore retries with backoff instead of failing immediately" },
+            { type: "improvement", text: "Settings changes no longer risk overwriting stored auth tokens" },
+        ],
+    },
+    {
         version: "0.7.7",
         date: "2026-07-15",
         changes: [

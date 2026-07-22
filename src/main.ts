@@ -37,6 +37,7 @@ export default class SupSyncPlugin extends Plugin {
     vaultName = "";
     currentUserId = "";
     private sessionCheckTimer: number | null = null;
+    private persistedRefreshToken = "";
 
     async onload(): Promise<void> {
         await this.loadSettings();
@@ -44,9 +45,10 @@ export default class SupSyncPlugin extends Plugin {
         setSupabaseSettings(this.settings);
         setPersistCallback((access, refresh) => {
             void (async () => {
+                if (refresh) this.persistedRefreshToken = refresh;
                 const data: Record<string, unknown> = { ...this.settings };
-                if (refresh) data._refreshToken = refresh;
-                if (access) data._accessToken = access;
+                data._refreshToken = refresh || this.persistedRefreshToken || "";
+                data._accessToken = access || "";
                 await this.saveData(data);
             })();
         });
@@ -129,6 +131,7 @@ export default class SupSyncPlugin extends Plugin {
         }
         if (storedRefresh) {
             setRefreshToken(storedRefresh);
+            this.persistedRefreshToken = storedRefresh;
         }
 
         const sharedFile = this.app.vault.getAbstractFileByPath(SETTINGS_SHARED_FILENAME);
@@ -145,7 +148,7 @@ export default class SupSyncPlugin extends Plugin {
 
     async saveSettings(): Promise<void> {
         const dataToSave: Record<string, unknown> = { ...this.settings };
-        const rt = getRefreshToken();
+        const rt = getRefreshToken() || this.persistedRefreshToken;
         if (rt) dataToSave._refreshToken = rt;
         const at = getAccessToken();
         if (at) dataToSave._accessToken = at;
@@ -183,9 +186,13 @@ export default class SupSyncPlugin extends Plugin {
         let user = await getCurrentUser();
 
         if (!user && getRefreshToken()) {
-            const refreshed = await refreshAccessToken();
-            if (refreshed) {
-                user = await getCurrentUser();
+            for (let i = 0; i < 2; i++) {
+                const refreshed = await refreshAccessToken();
+                if (refreshed) {
+                    user = await getCurrentUser();
+                    if (user) break;
+                }
+                await new Promise<void>(r => window.setTimeout(r, 2000 * (i + 1)));
             }
         }
 
@@ -398,6 +405,7 @@ export default class SupSyncPlugin extends Plugin {
                     await lockManager.releaseAll();
                     clearSyncErrors();
                     this.currentUserId = "";
+                    this.persistedRefreshToken = "";
                     setCurrentUserId("");
                     await this.saveData({ ...this.settings });
                     new Notice(t("plugin.signedOut"));

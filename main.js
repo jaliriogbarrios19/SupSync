@@ -808,18 +808,22 @@ async function refreshAccessToken() {
     };
     const res = await (0, import_obsidian3.requestUrl)(req);
     if (res.status < 200 || res.status >= 300) {
-      clearStoredTokens();
+      clearMemoryTokens();
       return false;
     }
     const data = res.json;
     saveTokens(data.access_token, data.refresh_token);
     return true;
   } catch (e) {
-    clearStoredTokens();
+    clearMemoryTokens();
     return false;
   }
 }
-function clearStoredTokens() {
+function clearMemoryTokens() {
+  accessToken = "";
+  refreshToken = "";
+}
+function clearAllTokens() {
   accessToken = "";
   refreshToken = "";
   if (persistTokens)
@@ -837,7 +841,7 @@ async function signOut() {
     }
   };
   await (0, import_obsidian3.requestUrl)(req);
-  saveTokens("", "");
+  clearAllTokens();
 }
 async function getCurrentUser() {
   if (!accessToken)
@@ -1955,6 +1959,15 @@ var import_obsidian8 = require("obsidian");
 
 // src/changelog.ts
 var CHANGELOG = [
+  {
+    version: "0.7.8",
+    date: "2026-07-22",
+    changes: [
+      { type: "fix", text: "Login no longer lost on temporary network failures \u2014 refresh token persists across restarts" },
+      { type: "fix", text: "Session restore retries with backoff instead of failing immediately" },
+      { type: "improvement", text: "Settings changes no longer risk overwriting stored auth tokens" }
+    ]
+  },
   {
     version: "0.7.7",
     date: "2026-07-15",
@@ -3217,6 +3230,7 @@ var SupSyncPlugin = class extends import_obsidian16.Plugin {
     this.vaultName = "";
     this.currentUserId = "";
     this.sessionCheckTimer = null;
+    this.persistedRefreshToken = "";
   }
   async onload() {
     await this.loadSettings();
@@ -3224,11 +3238,11 @@ var SupSyncPlugin = class extends import_obsidian16.Plugin {
     setSupabaseSettings(this.settings);
     setPersistCallback((access, refresh) => {
       void (async () => {
-        const data = { ...this.settings };
         if (refresh)
-          data._refreshToken = refresh;
-        if (access)
-          data._accessToken = access;
+          this.persistedRefreshToken = refresh;
+        const data = { ...this.settings };
+        data._refreshToken = refresh || this.persistedRefreshToken || "";
+        data._accessToken = access || "";
         await this.saveData(data);
       })();
     });
@@ -3300,6 +3314,7 @@ var SupSyncPlugin = class extends import_obsidian16.Plugin {
     }
     if (storedRefresh) {
       setRefreshToken(storedRefresh);
+      this.persistedRefreshToken = storedRefresh;
     }
     const sharedFile = this.app.vault.getAbstractFileByPath(SETTINGS_SHARED_FILENAME);
     if (sharedFile instanceof import_obsidian16.TFile) {
@@ -3313,7 +3328,7 @@ var SupSyncPlugin = class extends import_obsidian16.Plugin {
   }
   async saveSettings() {
     const dataToSave = { ...this.settings };
-    const rt = getRefreshToken();
+    const rt = getRefreshToken() || this.persistedRefreshToken;
     if (rt)
       dataToSave._refreshToken = rt;
     const at = getAccessToken();
@@ -3345,9 +3360,14 @@ var SupSyncPlugin = class extends import_obsidian16.Plugin {
     }
     let user = await getCurrentUser();
     if (!user && getRefreshToken()) {
-      const refreshed = await refreshAccessToken();
-      if (refreshed) {
-        user = await getCurrentUser();
+      for (let i = 0; i < 2; i++) {
+        const refreshed = await refreshAccessToken();
+        if (refreshed) {
+          user = await getCurrentUser();
+          if (user)
+            break;
+        }
+        await new Promise((r) => window.setTimeout(r, 2e3 * (i + 1)));
       }
     }
     if (user) {
@@ -3553,6 +3573,7 @@ var SupSyncPlugin = class extends import_obsidian16.Plugin {
           await lockManager.releaseAll();
           clearSyncErrors();
           this.currentUserId = "";
+          this.persistedRefreshToken = "";
           setCurrentUserId("");
           await this.saveData({ ...this.settings });
           new import_obsidian16.Notice(t("plugin.signedOut"));

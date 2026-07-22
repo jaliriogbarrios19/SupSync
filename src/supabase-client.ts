@@ -254,19 +254,24 @@ export async function refreshAccessToken(): Promise<boolean> {
         };
         const res = await requestUrl(req);
         if (res.status < 200 || res.status >= 300) {
-            clearStoredTokens();
+            clearMemoryTokens();
             return false;
         }
         const data = res.json as { access_token: string; refresh_token: string };
         saveTokens(data.access_token, data.refresh_token);
         return true;
     } catch {
-        clearStoredTokens();
+        clearMemoryTokens();
         return false;
     }
 }
 
-function clearStoredTokens(): void {
+function clearMemoryTokens(): void {
+    accessToken = "";
+    refreshToken = "";
+}
+
+function clearAllTokens(): void {
     accessToken = "";
     refreshToken = "";
     if (persistTokens) persistTokens("", "");
@@ -283,7 +288,7 @@ export async function signOut(): Promise<void> {
         },
     };
     await requestUrl(req);
-    saveTokens("", "");
+    clearAllTokens();
 }
 
 export async function getCurrentUser(): Promise<{ id: string; email: string } | null> {
