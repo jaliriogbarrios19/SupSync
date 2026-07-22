@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
     {
+        version: "0.7.9",
+        date: "2026-07-22",
+        changes: [
+            { type: "fix", text: "Removed unnecessary console logging flagged by review bot" },
+            { type: "improvement", text: "Settings now appear in Obsidian's settings search (1.13.0+)" },
+        ],
+    },
+    {
         version: "0.7.8",
         date: "2026-07-22",
         changes: [

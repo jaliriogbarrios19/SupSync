@@ -906,6 +906,52 @@ var SupSyncSettingTab = class extends import_obsidian4.PluginSettingTab {
     this.userEmail = "";
     this.plugin = plugin;
   }
+  getSettingDefinitions() {
+    return [
+      {
+        id: "supabaseUrl",
+        name: t("settings.url"),
+        description: t("settings.url.desc"),
+        type: "text"
+      },
+      {
+        id: "supabaseAnonKey",
+        name: t("settings.anonKey"),
+        description: t("settings.anonKey.desc"),
+        type: "text"
+      },
+      {
+        id: "syncInterval",
+        name: t("settings.syncInterval"),
+        description: t("settings.syncInterval.desc"),
+        type: "text"
+      },
+      {
+        id: "conflictMode",
+        name: t("settings.conflictMode"),
+        description: t("settings.conflictMode.desc"),
+        type: "dropdown"
+      },
+      {
+        id: "storageLimitMB",
+        name: t("settings.storageLimit"),
+        description: t("settings.storageLimit.desc"),
+        type: "text"
+      },
+      {
+        id: "maxFileSizeMB",
+        name: t("settings.maxFileSize"),
+        description: t("settings.maxFileSize.desc"),
+        type: "text"
+      },
+      {
+        id: "autoSyncEnabled",
+        name: t("settings.autoSync"),
+        description: t("settings.autoSync.desc"),
+        type: "toggle"
+      }
+    ];
+  }
   display() {
     void this.render().catch((err) => {
       console.error("[SupSync] Settings render failed:", err);
@@ -1960,6 +2006,14 @@ var import_obsidian8 = require("obsidian");
 // src/changelog.ts
 var CHANGELOG = [
   {
+    version: "0.7.9",
+    date: "2026-07-22",
+    changes: [
+      { type: "fix", text: "Removed unnecessary console logging flagged by review bot" },
+      { type: "improvement", text: "Settings now appear in Obsidian's settings search (1.13.0+)" }
+    ]
+  },
+  {
     version: "0.7.8",
     date: "2026-07-22",
     changes: [
@@ -2509,10 +2563,8 @@ async function pushBinaryFile(path, type, oldPath) {
   if (!(file instanceof import_obsidian10.TFile))
     return;
   const maxBytes = maxFileSizeMB * 1024 * 1024;
-  if (file.stat.size > maxBytes) {
-    console.info(`[SupSync] Skipping ${path} (${(file.stat.size / 1048576).toFixed(1)} MB > ${maxFileSizeMB} MB limit)`);
+  if (file.stat.size > maxBytes)
     return;
-  }
   const data = await vault.readBinary(file);
   const storagePath = sanitizeStoragePath(`${vaultId}/${path}`);
   const ext = ((_a = path.split(".").pop()) == null ? void 0 : _a.toLowerCase()) || "";
@@ -2553,10 +2605,8 @@ async function pullBinaryFiles() {
     try {
       if (isExcluded(rf.path))
         continue;
-      if (rf.size > maxBytes) {
-        console.info(`[SupSync] Skipping pull ${rf.path} (${(rf.size / 1048576).toFixed(1)} MB > ${maxFileSizeMB} MB limit)`);
+      if (rf.size > maxBytes)
         continue;
-      }
       const localFile = vault.getAbstractFileByPath(rf.path);
       if (!localFile) {
         const data = await retryWithBackoff(

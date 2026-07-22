@@ -72,10 +72,7 @@ export async function pushBinaryFile(
     if (!(file instanceof TFile)) return;
 
     const maxBytes = maxFileSizeMB * 1024 * 1024;
-    if (file.stat.size > maxBytes) {
-        console.info(`[SupSync] Skipping ${path} (${(file.stat.size / 1048576).toFixed(1)} MB > ${maxFileSizeMB} MB limit)`);
-        return;
-    }
+    if (file.stat.size > maxBytes) return;
 
     const data = await vault.readBinary(file);
     const storagePath = sanitizeStoragePath(`${vaultId}/${path}`);
@@ -120,10 +117,7 @@ export async function pullBinaryFiles(): Promise<void> {
     for (const rf of remoteFiles) {
         try {
             if (isExcluded(rf.path)) continue;
-            if (rf.size > maxBytes) {
-                console.info(`[SupSync] Skipping pull ${rf.path} (${(rf.size / 1048576).toFixed(1)} MB > ${maxFileSizeMB} MB limit)`);
-                continue;
-            }
+            if (rf.size > maxBytes) continue;
             const localFile = vault.getAbstractFileByPath(rf.path);
             if (!localFile) {
                 const data = await retryWithBackoff(() =>

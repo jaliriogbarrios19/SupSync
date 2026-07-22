@@ -8,6 +8,13 @@ import {
     getAccessToken, setCurrentUserId,
 } from "./supabase-client";
 
+interface SettingDefinition {
+    id: string;
+    name: string;
+    description: string;
+    type: "text" | "toggle" | "dropdown" | "slider";
+}
+
 export class SupSyncSettingTab extends PluginSettingTab {
     plugin: SupSyncPlugin;
     private userEmail = "";
@@ -15,6 +22,53 @@ export class SupSyncSettingTab extends PluginSettingTab {
     constructor(app: App, plugin: SupSyncPlugin) {
         super(app, plugin);
         this.plugin = plugin;
+    }
+
+    getSettingDefinitions(): SettingDefinition[] {
+        return [
+            {
+                id: "supabaseUrl",
+                name: t("settings.url"),
+                description: t("settings.url.desc"),
+                type: "text",
+            },
+            {
+                id: "supabaseAnonKey",
+                name: t("settings.anonKey"),
+                description: t("settings.anonKey.desc"),
+                type: "text",
+            },
+            {
+                id: "syncInterval",
+                name: t("settings.syncInterval"),
+                description: t("settings.syncInterval.desc"),
+                type: "text",
+            },
+            {
+                id: "conflictMode",
+                name: t("settings.conflictMode"),
+                description: t("settings.conflictMode.desc"),
+                type: "dropdown",
+            },
+            {
+                id: "storageLimitMB",
+                name: t("settings.storageLimit"),
+                description: t("settings.storageLimit.desc"),
+                type: "text",
+            },
+            {
+                id: "maxFileSizeMB",
+                name: t("settings.maxFileSize"),
+                description: t("settings.maxFileSize.desc"),
+                type: "text",
+            },
+            {
+                id: "autoSyncEnabled",
+                name: t("settings.autoSync"),
+                description: t("settings.autoSync.desc"),
+                type: "toggle",
+            },
+        ];
     }
 
     display(): void {
